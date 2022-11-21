@@ -58,7 +58,13 @@ For example:
 ### Table of user operation
 
 | From address type | From sub-asset | To address type | Support transaction type |
-| - | - | - |
+| - | - | - | - |
 | `fra` | BAR | `fra` | 1, 2, 3, 4, 8 |
+| `fra` | ABAR | `fra` | 9, 10 |
+| `fra` | BAR | `eth` | 1, 2, 3, 4, 8 |
+| `fra` | ABAR | `eth` | 9, 10 |
+| `fra` | BAR | `0x` | 6 |
+| `eth` | BAR | `fra` | 1, 2, 3, 4, 7, 8 |
+
 
 
