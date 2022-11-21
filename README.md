@@ -50,7 +50,7 @@ For example:
 4. Confidential asset type and amount BAR
 5. EVM call
 6. BAR to EVM
-7. EVM to Non-Confidential BAR
+7. EVM to AR
 8. BAR to ABAR
 9. ABAR to BAR
 10. ABAR transfer
@@ -68,15 +68,24 @@ For example:
 | `fra` | BAR | `0x` | 6 |
 | `fra` | ABAR | `0x` | |
 | `fra` | EVM | `0x` | |
-| `eth` | BAR | `fra` | 1, 2, 3, 4, 7, 8 |
+| `eth` | BAR | `fra` | 1, 2, 3, 4, 6, 8 |
 | `eth` | ABAR | `fra` | 9, 10 |
 | `eth` | EVM | `fra` | 7 |
-| `eth` | BAR | `eth` | 1, 2, 3, 4, 5, 6, 8 |
+| `eth` | BAR | `eth` | 1, 2, 3, 4, 6, 8 |
 | `eth` | ABAR | `eth` | 9, 10 |
-| `eth` | EVM | `eth` | 5, 6, 7 |
-| `eth` | BAR | `0x` | 1, 2, 3, 4, 5, 6, 8 |
+| `eth` | EVM | `eth` | 5, 7 |
+| `eth` | BAR | `0x` | 6 |
 | `eth` | ABAR | `0x` | |
-| `eth` | EVM | `0x` | 5, 6, 7 |
+| `eth` | EVM | `0x` | 5 |
+| `0x` | BAR | `fra` | |
+| `0x` | ABAR | `fra` | |
+| `0x` | EVM | `fra` | 7 |
+| `0x` | BAR | `eth` | |
+| `0x` | ABAR | `eth` | |
+| `0x` | EVM | `eth` | 5, 7 |
+| `0x` | BAR | `0x` | |
+| `0x` | ABAR | `0x` | |
+| `0x` | EVM | `0x` | 5 |
 
 
 
