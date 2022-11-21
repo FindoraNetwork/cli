@@ -44,6 +44,21 @@ For example:
 
 ### Support Transaction type on findora
 
-1. 
+1. Non-Confidential BAR
+2. Confidential amount BAR
+3. Confidential asset type BAR
+4. Confidential asset type and amount BAR
+5. EVM call
+6. BAR to EVM
+7. EVM to Non-Confidential BAR
+8. BAR to ABAR
+9. ABAR to BAR
+10. ABAR transfer
+
+### Table of user operation
+
+| From address type | From sub-asset | To address type | Support transaction type |
+| - | - | - |
+| `fra` | BAR | `fra` | 1, 2, 3, 4, 8 |
 
 
