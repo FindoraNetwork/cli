@@ -1,3 +1,12 @@
+use clap::Parser;
+
+mod commands;
+
+mod error;
+pub use error::*;
+
 fn main() {
-    println!("Hello, world!");
+    let cli = commands::Cli::parse();
+
+    cli.exeute().unwrap();
 }
