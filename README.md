@@ -68,7 +68,7 @@ For example:
 | `fra` | BAR | `0x` | 6 |
 | `fra` | ABAR | `0x` | |
 | `fra` | EVM | `0x` | |
-| `eth` | BAR | `fra` | 1, 2, 3, 4, 6, 8 |
+| `eth` | BAR | `fra` | 1, 2, 3, 4, 8 |
 | `eth` | ABAR | `fra` | 9, 10 |
 | `eth` | EVM | `fra` | 7 |
 | `eth` | BAR | `eth` | 1, 2, 3, 4, 6, 8 |
