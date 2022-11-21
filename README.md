@@ -61,15 +61,22 @@ For example:
 | - | - | - | - |
 | `fra` | BAR | `fra` | 1, 2, 3, 4, 8 |
 | `fra` | ABAR | `fra` | 9, 10 |
+| `fra` | EVM | `fra` | |
 | `fra` | BAR | `eth` | 1, 2, 3, 4, 8 |
 | `fra` | ABAR | `eth` | 9, 10 |
+| `fra` | EVM | `fra` | |
 | `fra` | BAR | `0x` | 6 |
+| `fra` | ABAR | `eth` | |
+| `fra` | EVM | `fra` | |
 | `eth` | BAR | `fra` | 1, 2, 3, 4, 7, 8 |
 | `eth` | ABAR | `fra` | 9, 10 |
 | `eth` | EVM | `fra` | 7 |
 | `eth` | BAR | `eth` | 1, 2, 3, 4, 5, 6, 8 |
 | `eth` | ABAR | `eth` | 9, 10 |
 | `eth` | EVM | `eth` | 5, 6, 7 |
+| `eth` | BAR | `0x` | 1, 2, 3, 4, 5, 6, 8 |
+| `eth` | ABAR | `0x` | |
+| `eth` | EVM | `0x` | 5, 6, 7 |
 
 
 
