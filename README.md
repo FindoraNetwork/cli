@@ -65,6 +65,12 @@ For example:
 | `fra` | ABAR | `eth` | 9, 10 |
 | `fra` | BAR | `0x` | 6 |
 | `eth` | BAR | `fra` | 1, 2, 3, 4, 7, 8 |
+| `eth` | ABAR | `fra` | 9, 10 |
+| `eth` | EVM | `fra` | 7 |
+| `eth` | BAR | `eth` | 1, 2, 3, 4, 5, 6, 8 |
+| `eth` | ABAR | `eth` | 9, 10 |
+| `eth` | EVM | `eth` | 5, 6, 7 |
+
 
 
 
