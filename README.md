@@ -62,12 +62,12 @@ For example:
 | `fra` | BAR | `fra` | 1, 2, 3, 4, 8 |
 | `fra` | ABAR | `fra` | 9, 10 |
 | `fra` | EVM | `fra` | |
-| `fra` | BAR | `eth` | 1, 2, 3, 4, 8 |
+| `fra` | BAR | `eth` | 1, 2, 3, 4, 6, 8 |
 | `fra` | ABAR | `eth` | 9, 10 |
-| `fra` | EVM | `fra` | |
+| `fra` | EVM | `eth` | |
 | `fra` | BAR | `0x` | 6 |
-| `fra` | ABAR | `eth` | |
-| `fra` | EVM | `fra` | |
+| `fra` | ABAR | `0x` | |
+| `fra` | EVM | `0x` | |
 | `eth` | BAR | `fra` | 1, 2, 3, 4, 7, 8 |
 | `eth` | ABAR | `fra` | 9, 10 |
 | `eth` | EVM | `fra` | 7 |
