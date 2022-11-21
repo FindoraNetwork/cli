@@ -1,4 +1,4 @@
-use clap::Args;
+use clap::{Args, builder::Str};
 
 use crate::Result;
 
@@ -17,8 +17,20 @@ pub struct Transfer {
     #[arg(short, long)]
     sub_asset: String,
 
-    #[arg(short, long)]
-    confidential_amount: String,
+    #[arg(long)]
+    confidential_amount: bool,
+
+    #[arg(long)]
+    confidential_asset: bool,
+
+    #[arg(long)]
+    confidential_amount_asset: bool,
+
+    #[arg(long)]
+    confidential_amount_asset_address: bool,
+
+    #[arg(long)]
+    lowlevel_data: String,
 }
 
 impl Transfer {
