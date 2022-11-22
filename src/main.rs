@@ -1,9 +1,7 @@
-use clap::Parser;
-
 mod commands;
+mod wallet;
 
-mod error;
-pub use error::*;
+use clap::Parser;
 
 fn main() {
     let cli = commands::Cli::parse();

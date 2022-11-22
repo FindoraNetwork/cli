@@ -1,6 +1,4 @@
-use clap::{Args, builder::Str};
-
-use crate::Result;
+use {anyhow::Result, clap::Args};
 
 #[derive(Debug, Args)]
 /// Do transfer
@@ -34,8 +32,7 @@ pub struct Transfer {
 }
 
 impl Transfer {
-    pub fn execute(self) -> Result<()> {
+    pub fn execute(self, _home: &str) -> Result<()> {
         Ok(())
     }
 }
-
