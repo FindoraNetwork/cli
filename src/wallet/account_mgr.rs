@@ -16,12 +16,19 @@ pub struct AccountMgr {
 }
 
 impl AccountMgr {
-    pub fn init(lang: &str, wordslen: u8, passphrase: &str, home: &str) -> Result<Self> {
+    pub fn init(
+        lang: &str,
+        wordslen: u8,
+        mnemonic: Option<String>,
+        passphrase: &str,
+        home: &str,
+    ) -> Result<Self> {
         let home_path = Path::new(home);
         if !home_path.exists() {
             create_dir_all(home_path)?;
         }
-        let (root_account, mnemonic) = RootAccount::generate(lang, wordslen, passphrase, home)?;
+        let (root_account, mnemonic) =
+            RootAccount::generate(lang, wordslen, mnemonic, passphrase, home)?;
 
         let account_path = format!("{}/{}", home, ACCOUNT_DIRECTORY);
         let account_path = Path::new(account_path.as_str());
