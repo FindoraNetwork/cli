@@ -2,6 +2,50 @@
 
 > Hight level user interface cli
 
+## Guide
+
+### Create a root wallet
+
+```shell
+# Create root wallet
+$ cli wallet --create --passphrase <pass> --lang <lang>
+
+# Please backup output mnemonic
+```
+
+### Show wallet
+
+```shell
+cli wallet --show
+
+# This is output
+
+FRA address: fra1xxxxx
+FRA public key in hex: 0xXXXX
+Amount: 0
+
+ETH address: eth1xxxxx
+ETH public key in hex: 0xXXXX
+Amount: 0
+
+EVM address: 0xXXXX
+EVM public key in hex: 0xXXXX
+Amount: 0
+
+```
+
+### Generate account
+
+```shell
+cli wallet --generate --type <fra/eth/evm> --label <label>
+```
+
+### Add account
+
+```shell
+cli wallet --add --private-key <private key> --label <label>
+```
+
 ## Functions
 
 ### Wallet
@@ -87,6 +131,36 @@ For example:
 | `0x` | ABAR | `0x` | |
 | `0x` | EVM | `0x` | 5 |
 
+## Store
+
+```shell
+<home>
+| - root-wallet.key
+| - accounts
+    | - fraxxxxx.key
+    | - 0xxxxx.key
+    | - ethxxx.key
+| - assets
+```
+
+### Root wallet format
+
+```rust
+pub struct RootWallet {
+   pub seed: String,
+}
+```
+
+### Account Format
+
+```rust
+pub struct Account {
+   pub private_key: String,
+   pub ty: Type,
+   pub label: String,
+   pub address: String,
+}
+```
 
 
 
