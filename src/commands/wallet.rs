@@ -12,7 +12,7 @@ pub struct Wallet {
         short,
         long,
         conflicts_with = "create",
-        conflicts_with = "create_type",
+        conflicts_with = "typ",
         conflicts_with = "show"
     )]
     init: bool,
@@ -37,7 +37,7 @@ pub struct Wallet {
         conflicts_with = "show",
         value_name = "TYPE"
     )]
-    create_type: Option<String>,
+    typ: Option<String>,
     ///show all account info
     #[arg(
         short,
@@ -45,9 +45,20 @@ pub struct Wallet {
         conflicts_with = "init",
         conflicts_with = "passphrase",
         conflicts_with = "create",
-        conflicts_with = "create_type"
+        conflicts_with = "typ"
     )]
     show: bool,
+    ///import private key
+    #[arg(
+        short = 'I',
+        long,
+        conflicts_with = "init",
+        conflicts_with = "passphrase",
+        conflicts_with = "create",
+        conflicts_with = "show",
+        value_name = "PRIVATE KEY"
+    )]
+    import: Option<String>,
 }
 
 impl Wallet {
@@ -61,7 +72,7 @@ impl Wallet {
                 println!("init error: {}", e);
             }
         } else if self.create {
-            let account_type = match self.create_type.clone().unwrap_or_default().as_str() {
+            let account_type = match self.typ.clone().unwrap_or_default().as_str() {
                 "fra" => AccountType::Fra,
                 "eth" => AccountType::Eth,
                 "evm" => AccountType::Evm,
@@ -71,6 +82,25 @@ impl Wallet {
                 Ok(mut mgr) => {
                     if let Err(e) = mgr.generate_account(account_type, home) {
                         println!("generate_account error: {}", e);
+                    }
+                }
+                Err(e) => println!("load_from_file error: {}", e),
+            };
+        } else if self.import.is_some() {
+            let account_type = match self.typ.clone().unwrap_or_default().as_str() {
+                "fra" => AccountType::Fra,
+                "eth" => AccountType::Eth,
+                "evm" => AccountType::Evm,
+                _ => {
+                    println!("please specify the import type(fra/eth/evm)");
+                    return Ok(());
+                }
+            };
+            let key = self.import.as_deref().unwrap_or_default();
+            match AccountMgr::load_from_file(home) {
+                Ok(mut mgr) => {
+                    if let Err(e) = mgr.import_from_private_key(account_type, key) {
+                        println!("import_from_private_key error: {}", e);
                     }
                 }
                 Err(e) => println!("load_from_file error: {}", e),

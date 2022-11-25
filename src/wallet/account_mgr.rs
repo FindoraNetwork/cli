@@ -10,6 +10,7 @@ use {
 };
 
 pub struct AccountMgr {
+    pub home: String,
     pub root_account: RootAccount,
     pub accounts: HashMap<String, Account>,
 }
@@ -47,6 +48,7 @@ impl AccountMgr {
         let account = Account::generate(AccountType::Evm, 2, &seed, home)?;
         accounts.insert(account.address.clone(), account);
         Ok(AccountMgr {
+            home: String::from(home),
             root_account,
             accounts,
         })
@@ -68,11 +70,22 @@ impl AccountMgr {
             }
         }
         Ok(AccountMgr {
+            home: String::from(home_path),
             root_account,
             accounts,
         })
     }
-
+    pub fn import_from_private_key(
+        &mut self,
+        account_type: AccountType,
+        private_key: &str,
+    ) -> Result<()> {
+        let account =
+            Account::import_from_private_key(self.home.as_str(), account_type, private_key)?;
+        account.show()?;
+        self.accounts.insert(account.address.clone(), account);
+        Ok(())
+    }
     pub fn show(&self) -> Result<()> {
         for (_, account) in self.accounts.iter() {
             account.show()?;
