@@ -1,8 +1,5 @@
 use {
-    super::{
-        Account, ACCOUNT_DIRECTORY,
-        RootAccount,
-    },
+    super::{Account, RootAccount, ACCOUNT_DIRECTORY},
     crate::wallet::AccountType,
     anyhow::Result,
     std::{

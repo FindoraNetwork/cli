@@ -55,10 +55,7 @@ impl Wallet {
         if self.init {
             let lang = "en";
             let wordslen = 24;
-            let passphrase = self
-                .passphrase
-                .as_deref()
-                .unwrap_or_default();
+            let passphrase = self.passphrase.as_deref().unwrap_or_default();
 
             if let Err(e) = AccountMgr::init(lang, wordslen, passphrase, home) {
                 println!("init error: {}", e);
