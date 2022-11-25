@@ -58,7 +58,76 @@ impl Account {
         let account = serde_json::from_str::<Self>(json.as_str())?;
         Ok(account)
     }
+    pub fn import_from_private_key(
+        home_path: &str,
+        account_type: AccountType,
+        private_key: &str,
+    ) -> Result<Self> {
+        let key = if let Some(stripped) = private_key.strip_prefix("0x") {
+            stripped.to_string()
+        } else {
+            private_key.to_string()
+        };
+        let data = hex::decode(key.as_str())?;
+        if 32 != data.len() {
+            return Err(anyhow!(
+                "Invalid length, required 32, actual {}",
+                data.len()
+            ));
+        }
+        let (account_type, address) = match account_type {
+            AccountType::Fra => {
+                let key_pair = XfrSecretKey::noah_from_bytes(&data)
+                    .map_err(|e| anyhow!("XfrSecretKey::noah_from_bytes error {:?}", e))?
+                    .into_keypair();
 
+                let bytes = &XfrPublicKey::noah_to_bytes(&key_pair.pub_key);
+                println!("{}", hex::encode(bytes));
+                let address = if 0u8 == bytes[0] {
+                    bech32::encode("fra", (<&[u8; 32]>::try_from(&bytes[1..33])?).to_base32())?
+                } else {
+                    return Err(anyhow!("fra addr format error"));
+                };
+                (AccountType::Fra, address)
+            }
+            AccountType::Eth => {
+                let key_pair = XfrKeyPair::generate_secp256k1_from_bytes(&data).map_err(|e| {
+                    anyhow!("XfrKeyPair::generate_secp256k1_from_bytes error {:?}", e)
+                })?;
+                let bytes = XfrPublicKey::noah_to_bytes(&key_pair.pub_key);
+                let address = if 1u8 == bytes[0] {
+                    bech32::encode("eth", (<&[u8; 32]>::try_from(&bytes[1..33])?).to_base32())?
+                } else {
+                    return Err(anyhow!("eth addr format error"));
+                };
+                (AccountType::Eth, address)
+            }
+            AccountType::Evm => {
+                let key_pair = XfrKeyPair::generate_secp256k1_from_bytes(&data).map_err(|e| {
+                    anyhow!("XfrKeyPair::generate_secp256k1_from_bytes error {:?}", e)
+                })?;
+                let address =
+                    if let XfrPublicKeyInner::Secp256k1(pub_key) = key_pair.pub_key.inner() {
+                        H160::from(convert_libsecp256k1_public_key_to_address(pub_key))
+                    } else {
+                        return Err(anyhow!("evm public key error"));
+                    };
+                (AccountType::Evm, format!("{:?}", address))
+            }
+        };
+        let account = Account {
+            private_key: format!("0x{}", key),
+            account_type,
+            num: 0,
+            address,
+        };
+        let mut file = File::create(format!(
+            "{}/{}/{}.json",
+            home_path, ACCOUNT_DIRECTORY, account.address
+        ))?;
+        file.write_all(serde_json::to_string(&account)?.as_bytes())?;
+        Ok(account)
+    }
     pub fn get_key_pair(&self) -> Result<XfrKeyPair> {
         let private_key = if self.private_key.starts_with("0x") {
             self.private_key[2..].to_string()
@@ -70,7 +139,7 @@ impl Account {
             AccountType::Fra => XfrSecretKey::noah_from_bytes(&data)
                 .map_err(|e| anyhow!("XfrSecretKey::noah_from_bytes error {:?}", e))?
                 .into_keypair(),
-            AccountType::Eth => XfrKeyPair::generate_secp256k1_from_bytes(&data)
+            AccountType::Eth => XfrKeyPair::generate_secp256k1_from_bytes(&data[1..])
                 .map_err(|e| anyhow!("XfrKeyPair::generate_secp256k1_from_bytes error {:?}", e))?,
             AccountType::Evm => XfrKeyPair::generate_secp256k1_from_bytes(&data)
                 .map_err(|e| anyhow!("XfrKeyPair::generate_secp256k1_from_bytes error {:?}", e))?,
@@ -83,12 +152,14 @@ impl Account {
             "\x1b[31;01m{:?} Address:\x1b[00m {}",
             self.account_type, self.address
         );
+        let pub_key = XfrPublicKey::noah_to_bytes(&self.get_key_pair()?.pub_key);
         println!(
             "\x1b[31;01m{:?} Public Key in hex:\x1b[00m 0x{}",
             self.account_type,
             match self.account_type {
-                AccountType::Evm => hex::encode(&self.get_key_pair()?.get_pk().to_bytes()[1..]),
-                _ => hex::encode(XfrPublicKey::noah_to_bytes(&self.get_key_pair()?.pub_key)),
+                AccountType::Fra => hex::encode(&pub_key),
+                AccountType::Eth => hex::encode(&pub_key),
+                AccountType::Evm => hex::encode(&pub_key[1..]),
             }
         );
         println!("\x1b[31;01mAmount:\x1b[00m {}\n", get_amount());
@@ -166,7 +237,7 @@ impl Account {
         let address = if let XfrPublicKeyInner::Secp256k1(pub_key) = key_pair.pub_key.inner() {
             H160::from(convert_libsecp256k1_public_key_to_address(pub_key))
         } else {
-            return Err(anyhow!("eth public key error"));
+            return Err(anyhow!("evm public key error"));
         };
         Ok(Account {
             private_key: format!("0x{}", hex::encode(&key_pair.get_sk().to_bytes()[1..])),

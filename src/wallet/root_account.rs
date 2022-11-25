@@ -15,12 +15,15 @@ impl RootAccount {
     pub fn generate(
         lang: &str,
         wordslen: u8,
+        mnemonic: Option<String>,
         passphrase: &str,
         home_path: &str,
     ) -> Result<(Self, String)> {
         let language = check_lang(lang)?;
-        let word_count = check_word(wordslen)?;
-        let mnemonic = Mnemonic::generate_in(language, word_count);
+        let mnemonic = match mnemonic {
+            Some(phrase) => Mnemonic::from_phrase_in(language, phrase)?,
+            None => Mnemonic::generate_in(language, check_word(wordslen)?),
+        };
         let seed = mnemonic.to_seed(passphrase);
         let account = RootAccount {
             seed: hex::encode(seed),
