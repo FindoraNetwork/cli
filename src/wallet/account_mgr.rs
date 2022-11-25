@@ -54,6 +54,7 @@ impl AccountMgr {
             accounts,
         })
     }
+
     pub fn load_from_file(home_path: &str) -> Result<Self> {
         let root_account = RootAccount::load_from_file(home_path)?;
         let account_path = format!("{}/{}", home_path, ACCOUNT_DIRECTORY);
@@ -74,12 +75,14 @@ impl AccountMgr {
             accounts,
         })
     }
+
     pub fn show(&self) -> Result<()> {
         for (_, account) in self.accounts.iter() {
             account.show()?;
         }
         Ok(())
     }
+
     pub fn generate_account(&mut self, account_type: AccountType, home_path: &str) -> Result<()> {
         let seed = self.root_account.get_seed()?;
         let account =
