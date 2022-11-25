@@ -1,5 +1,5 @@
 use {
-    crate::wallet::{account::AccountType, account_mgr::AccountMgr},
+    crate::wallet::{AccountMgr, AccountType},
     anyhow::Result,
     clap::Args,
 };
@@ -57,9 +57,8 @@ impl Wallet {
             let wordslen = 24;
             let passphrase = self
                 .passphrase
-                .as_ref()
-                .map(|val| val.as_str())
-                .unwrap_or("");
+                .as_deref()
+                .unwrap_or_default();
 
             if let Err(e) = AccountMgr::init(lang, wordslen, passphrase, home) {
                 println!("init error: {}", e);

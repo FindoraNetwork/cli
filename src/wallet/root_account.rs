@@ -10,6 +10,7 @@ const ROOT_FILE_NAME: &str = "root_wallet.key";
 pub struct RootAccount {
     seed: String,
 }
+
 impl RootAccount {
     pub fn generate(
         lang: &str,
@@ -53,6 +54,7 @@ impl RootAccount {
         Ok(seed)
     }
 }
+
 #[inline(always)]
 pub fn check_lang(lang: &str) -> Result<Language> {
     let l = match lang {
@@ -70,6 +72,7 @@ pub fn check_lang(lang: &str) -> Result<Language> {
     };
     Ok(l)
 }
+
 #[inline(always)]
 pub fn check_word(wordslen: u8) -> Result<Count> {
     let cnt = match wordslen {

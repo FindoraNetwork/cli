@@ -51,12 +51,14 @@ impl Account {
         file.write_all(serde_json::to_string(&account)?.as_bytes())?;
         Ok(account)
     }
+
     #[inline(always)]
     pub fn load_from_file(file_name: &str) -> Result<Self> {
         let json = read_to_string(file_name)?;
         let account = serde_json::from_str::<Self>(json.as_str())?;
         Ok(account)
     }
+
     pub fn get_key_pair(&self) -> Result<XfrKeyPair> {
         let private_key = if self.private_key.starts_with("0x") {
             self.private_key[2..].to_string()
@@ -75,6 +77,7 @@ impl Account {
         };
         Ok(kp)
     }
+
     pub fn show(&self) -> Result<()> {
         println!(
             "\x1b[31;01m{:?} Address:\x1b[00m {}",
@@ -88,9 +91,10 @@ impl Account {
                 _ => hex::encode(XfrPublicKey::noah_to_bytes(&self.get_key_pair()?.pub_key)),
             }
         );
-        println!("\x1b[31;01mAmount:\x1b[00m {}", get_amount());
+        println!("\x1b[31;01mAmount:\x1b[00m {}\n", get_amount());
         Ok(())
     }
+
     fn generate_fra(num: u32, seed: &[u8; 64]) -> Result<Self> {
         let key_pair = DerivationPath::bip44(FRA, num, num, num)
             .map_err(|e| anyhow!("DerivationPath::bip44 error:{:?}", e))
@@ -120,6 +124,7 @@ impl Account {
             address,
         })
     }
+
     fn generate_eth(num: u32, seed: &[u8; 64]) -> Result<Self> {
         let key_pair = format!("m/44'/{}'/{}'/{}/{}", ETH, num, num, num)
             .parse::<bip32::DerivationPath>()
@@ -145,6 +150,7 @@ impl Account {
             address,
         })
     }
+
     fn generate_evm(num: u32, seed: &[u8; 64]) -> Result<Self> {
         let key_pair = format!("m/44'/{}'/{}'/{}/{}", ETH, num, num, num)
             .parse::<bip32::DerivationPath>()
@@ -170,6 +176,7 @@ impl Account {
         })
     }
 }
+
 fn get_amount() -> u64 {
     0
 }

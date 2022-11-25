@@ -1,9 +1,9 @@
 use {
     super::{
-        account::{Account, ACCOUNT_DIRECTORY},
-        wallet::RootAccount,
+        Account, ACCOUNT_DIRECTORY,
+        RootAccount,
     },
-    crate::wallet::account::AccountType,
+    crate::wallet::AccountType,
     anyhow::Result,
     std::{
         collections::HashMap,
@@ -44,11 +44,11 @@ impl AccountMgr {
 
         let seed = root_account.get_seed()?;
         let account = Account::generate(AccountType::Fra, 0, &seed, home)?;
-        accounts.insert(account.address.clone(), account.clone());
+        accounts.insert(account.address.clone(), account);
         let account = Account::generate(AccountType::Eth, 1, &seed, home)?;
-        accounts.insert(account.address.clone(), account.clone());
+        accounts.insert(account.address.clone(), account);
         let account = Account::generate(AccountType::Evm, 2, &seed, home)?;
-        accounts.insert(account.address.clone(), account.clone());
+        accounts.insert(account.address.clone(), account);
         Ok(AccountMgr {
             root_account,
             accounts,
@@ -75,10 +75,8 @@ impl AccountMgr {
         })
     }
     pub fn show(&self) -> Result<()> {
-        println!("");
         for (_, account) in self.accounts.iter() {
             account.show()?;
-            println!("")
         }
         Ok(())
     }
