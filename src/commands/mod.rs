@@ -7,3 +7,5 @@ pub use transfer::*;
 mod asset;
 pub use asset::*;
 
+mod wallet;
+pub use wallet::*;
