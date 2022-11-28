@@ -9,3 +9,6 @@ pub use asset::*;
 
 mod wallet;
 pub use wallet::*;
+
+mod server;
+pub use server::*;

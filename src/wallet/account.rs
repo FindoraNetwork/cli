@@ -139,7 +139,7 @@ impl Account {
             AccountType::Fra => XfrSecretKey::noah_from_bytes(&data)
                 .map_err(|e| anyhow!("XfrSecretKey::noah_from_bytes error {:?}", e))?
                 .into_keypair(),
-            AccountType::Eth => XfrKeyPair::generate_secp256k1_from_bytes(&data[1..])
+            AccountType::Eth => XfrKeyPair::generate_secp256k1_from_bytes(&data)
                 .map_err(|e| anyhow!("XfrKeyPair::generate_secp256k1_from_bytes error {:?}", e))?,
             AccountType::Evm => XfrKeyPair::generate_secp256k1_from_bytes(&data)
                 .map_err(|e| anyhow!("XfrKeyPair::generate_secp256k1_from_bytes error {:?}", e))?,

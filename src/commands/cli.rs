@@ -1,7 +1,8 @@
 use {
-    super::{Asset, Transfer, Wallet},
+    super::{Asset, ServerCli, Transfer, Wallet},
     anyhow::{anyhow, Result},
     clap::{Parser, Subcommand},
+    env_logger::Env,
     std::fs::create_dir_all,
     std::path::Path,
 };
@@ -24,6 +25,13 @@ pub struct Cli {
 
 impl Cli {
     pub fn exeute(self) -> Result<()> {
+        let env_log = if self.verbose {
+            Env::new().default_filter_or("trace")
+        } else {
+            Env::new().default_filter_or("off")
+        };
+        env_logger::try_init_from_env(env_log)?;
+
         let home = self
             .home
             .unwrap_or(format!("{}/.findora_cli/", std::env::var("HOME")?));
@@ -36,6 +44,7 @@ impl Cli {
         }
 
         match self.command {
+            Commands::Server(c) => c.execute(home.as_str())?,
             Commands::Wallet(c) => c.execute(home.as_str())?,
             Commands::Asset(c) => c.execute(home.as_str())?,
             Commands::Transfer(c) => c.execute(home.as_str())?,
@@ -46,6 +55,7 @@ impl Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
+    Server(ServerCli),
     Wallet(Wallet),
     Asset(Asset),
     Transfer(Transfer),
