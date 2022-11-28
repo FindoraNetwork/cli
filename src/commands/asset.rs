@@ -1,7 +1,12 @@
 use {
-    crate::{server::Server, wallet::AccountMgr},
+    crate::{
+        asset::{get_evm_balance, get_owned_utxo_balance},
+        server::Server,
+        wallet::{AccountMgr, AccountType},
+    },
     anyhow::Result,
     clap::Args,
+    primitive_types::U256,
 };
 
 #[derive(Debug, Args)]
@@ -41,6 +46,55 @@ impl Asset {
                 address
             }
         };
+        for addr in address {
+            let account = match mgr.accounts.get(&addr) {
+                Some(acc) => acc.clone(),
+                None => {
+                    println!("account {} not found", addr);
+                    return Ok(());
+                }
+            };
+            let pk = match account.get_key_pair() {
+                Ok(pk) => pk.get_pk(),
+                Err(e) => {
+                    println!("account {} key pair error:{}", addr, e);
+                    return Ok(());
+                }
+            };
+            println!("\n\x1b[31;01mAddress:\x1b[00m {}", addr);
+            match account.account_type {
+                AccountType::Evm => {
+                    let balance = match get_evm_balance(&server, &addr) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            println!("account {} get_evm_balance error:{}", addr, e);
+                            return Ok(());
+                        }
+                    };
+                    if U256::zero() == balance {
+                        println!("\t\x1b[31;01mAmount:\x1b[00m 0");
+                    } else {
+                        println!("\t\x1b[31;01mEvm Balance:\x1b[00m {}", balance);
+                    }
+                }
+                _ => {
+                    let utxo = match get_owned_utxo_balance(&server, &pk) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            println!("account {} get_owned_utxos error:{}", addr, e);
+                            return Ok(());
+                        }
+                    };
+                    if utxo.is_empty() {
+                        println!("\t\x1b[31;01mAmount:\x1b[00m 0");
+                    } else {
+                        for (asset, amount) in utxo {
+                            println!("\t\x1b[31;01m{}:\x1b[00m {}", asset, amount);
+                        }
+                    }
+                }
+            }
+        }
 
         Ok(())
     }

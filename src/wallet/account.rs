@@ -162,7 +162,6 @@ impl Account {
                 AccountType::Evm => hex::encode(&pub_key[1..]),
             }
         );
-        println!("\x1b[31;01mAmount:\x1b[00m {}\n", get_amount());
         Ok(())
     }
 
@@ -246,8 +245,4 @@ impl Account {
             address: format!("{:?}", address),
         })
     }
-}
-
-fn get_amount() -> u64 {
-    0
 }
