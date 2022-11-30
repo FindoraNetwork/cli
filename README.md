@@ -1,4 +1,4 @@
-# findora cli
+# Findora Cli
 
 > Hight level user interface cli
 
@@ -61,9 +61,9 @@ $ cli asset --show --address fra1XXXXXX
 # Output:
 Address: eth1XXXXXX
 100 FRA
-- 50 FRA(EVM,  0xXXXXXXXX)
-- 50 FRA(BAR,  0x000000000)
-- 0  FRA(ABAR, 0x000000000)
+- 50 FRA(EVM)
+- 50 FRA(BAR)
+- 0  FRA(ABAR)
 
 100 USDT
 - 50 USDT(FRC20, 0xXXXXXXXX)
@@ -73,19 +73,37 @@ Address: eth1XXXXXX
 100 BUSD
 - 50 BUSD(BAR,   0xXXXXXXXX)
 - 0  BUSD(ABAR,  0xXXXXXXXX)
+
+ENS - 1
+- 1 USDT(FRC721, 0xXXXXXXXX)
+- 0 USDT(BAR,    0xXXXXXXXX)
+- 0 USDT(ABAR,   0xXXXXXXXX)
+
+ENS - 2
+- 1 USDT(FRC721, 0xXXXXXXXX)
+- 0 USDT(BAR,    0xXXXXXXXX)
+- 0 USDT(ABAR,   0xXXXXXXXX)
+
+100 ENSP - 1
+- 30 USDT(FRC1155, 0xXXXXXXXX)
+- 70 USDT(BAR,    0xXXXXXXXX)
+- 0  USDT(ABAR,   0xXXXXXXXX)
 ```
 
 #### Add Asset
 
 ```shell
-# Add USDT on UTXO
-$ cli asset --add --type utxo --asset 0xXXXXXXXX --symbol USDT
+# Add UTXO asset
+$ cli asset --add --type utxo --asset 0xXXXXXXXX --symbol BUSD
 
-# Add USDT on EVM
-$ cli asset --add --type frc20 --asset 0xXXXXXXXX --symbol BUSD
+# Add FRC20
+$ cli asset --add --type frc20 --asset 0xXXXXXXXX
 
-# Add USDT based on auto
-$ cli asset --add --type frc721 --asset 0xXXXXXXXX
+# Add FRC721
+$ cli asset --add --type frc721 --asset 0xXXXXXXXX --tokenId 1
+
+# Add FRC1155
+$ cli asset --add --type frc1155 --asset 0xXXXXXXXX --tokenId 1
 ```
 
 ## Functions
