@@ -59,9 +59,6 @@ Show asset in brief
 $ cli asset --show --address fra1XXXXXX
 
 # Output:
-Address: fra1XXXXXX
-
-# Output:
 Address: eth1XXXXXX
 100 FRA [100 FRA(EVM), 0 FRA(BAR), 0 FRA(ABAR)]
 100 USDT [0 FRA(EVM), 100 FRA(BAR), 0 FRA(ABAR)]
