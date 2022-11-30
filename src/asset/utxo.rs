@@ -1,8 +1,9 @@
 use {
     crate::server::Server,
-    anyhow::Result,
+    anyhow::{anyhow, Result},
     noah::xfr::{
-        sig::XfrPublicKey,
+        asset_record::open_blind_asset_record,
+        sig::XfrKeyPair,
         structs::{BlindAssetRecord, OwnerMemo},
     },
     noah_algebra::serialization::NoahFromToBytes,
@@ -22,39 +23,33 @@ pub struct TxOutput {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Utxo(pub TxOutput);
 
-pub fn get_owned_utxo_balance(
-    server: &Server,
-    addr: &XfrPublicKey,
-) -> Result<HashMap<String, u64>> {
+pub fn get_owned_utxo_balance(server: &Server, kp: &XfrKeyPair) -> Result<HashMap<String, u64>> {
     let url = format!(
         "{}:{}/owned_utxos/{}",
         server.server_address,
         server.query_port,
-        base64::encode_config(&NoahFromToBytes::noah_to_bytes(addr), base64::URL_SAFE)
+        base64::encode_config(
+            &NoahFromToBytes::noah_to_bytes(&kp.pub_key),
+            base64::URL_SAFE
+        )
     );
 
     let mut map = HashMap::new();
     let bytes = attohttpc::get(&url).send()?.error_for_status()?.bytes()?;
-    for (_, (utxo, _)) in
+    for (_, (utxo, owner_memo)) in
         serde_json::from_slice::<HashMap<TxoSID, (Utxo, Option<OwnerMemo>)>>(&bytes)?.iter()
     {
-        let asset = match utxo.0.record.asset_type {
-            noah::xfr::structs::XfrAssetType::Confidential(_) => continue,
-            noah::xfr::structs::XfrAssetType::NonConfidential(input) => {
-                base64::encode_config(input.0, base64::URL_SAFE)
-            }
-        };
-        let amount = match utxo.0.record.amount {
-            noah::xfr::structs::XfrAmount::Confidential(_) => continue,
-            noah::xfr::structs::XfrAmount::NonConfidential(val) => val,
-        };
+        let open_asset_record = open_blind_asset_record(&utxo.0.record, owner_memo, kp)
+            .map_err(|e| anyhow!("open_blind_asset_record error:{:?}", e))?;
+        let asset = base64::encode_config(open_asset_record.asset_type.0, base64::URL_SAFE);
+
         match map.get(&asset) {
             Some(val) => {
-                let val = (*val) + amount;
+                let val = (*val) + open_asset_record.amount;
                 map.insert(asset, val);
             }
             None => {
-                map.insert(asset, amount);
+                map.insert(asset, open_asset_record.amount);
             }
         };
     }

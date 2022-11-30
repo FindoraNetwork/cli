@@ -1,6 +1,6 @@
 use {
     crate::{
-        asset::{get_evm_balance, get_owned_utxo_balance},
+        asset::{call_balance_of, get_evm_balance, get_owned_utxo_balance},
         server::Server,
         wallet::{AccountMgr, AccountType},
     },
@@ -12,6 +12,8 @@ use {
 #[derive(Debug, Args)]
 ///Asset Management
 pub struct Asset {
+    //ERC20 Token Address
+    contract_address: Option<String>,
     ///the address of the asset to display, default all
     #[arg(short, long)]
     address: Option<String>,
@@ -22,13 +24,6 @@ pub struct Asset {
 
 impl Asset {
     pub fn execute(self, home: &str) -> Result<()> {
-        let mgr = match AccountMgr::load_from_file(home) {
-            Ok(val) => val,
-            Err(e) => {
-                println!("load account error: {:?}", e);
-                return Ok(());
-            }
-        };
         let server = match Server::load_from_file(home) {
             Ok(val) => val,
             Err(e) => {
@@ -36,6 +31,32 @@ impl Asset {
                 return Ok(());
             }
         };
+        if let Some(contract_address) = self.contract_address.as_deref() {
+            let addr = match self.address.as_deref() {
+                Some(val) => val,
+                None => {
+                    println!("address can not be empty");
+                    return Ok(());
+                }
+            };
+            let balance = match call_balance_of(&server, addr, contract_address) {
+                Ok(val) => val,
+                Err(e) => {
+                    println!("call_balance_of error:{}", e);
+                    return Ok(());
+                }
+            };
+            println!("\n\x1b[31;01m{}:\x1b[00m {}", addr, balance);
+            return Ok(());
+        }
+        let mgr = match AccountMgr::load_from_file(home) {
+            Ok(val) => val,
+            Err(e) => {
+                println!("load account error: {:?}", e);
+                return Ok(());
+            }
+        };
+
         let address = match self.address.as_ref() {
             Some(val) => vec![val.clone()],
             None => {
@@ -54,8 +75,8 @@ impl Asset {
                     return Ok(());
                 }
             };
-            let pk = match account.get_key_pair() {
-                Ok(pk) => pk.get_pk(),
+            let kp = match account.get_key_pair() {
+                Ok(val) => val,
                 Err(e) => {
                     println!("account {} key pair error:{}", addr, e);
                     return Ok(());
@@ -78,7 +99,7 @@ impl Asset {
                     }
                 }
                 _ => {
-                    let utxo = match get_owned_utxo_balance(&server, &pk) {
+                    let utxo = match get_owned_utxo_balance(&server, &kp) {
                         Ok(v) => v,
                         Err(e) => {
                             println!("account {} get_owned_utxos error:{}", addr, e);

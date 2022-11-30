@@ -1,5 +1,5 @@
 use {
-    super::{Asset, ServerCli, Transfer, Wallet},
+    super::{Asset, Server, Transfer, Wallet},
     anyhow::{anyhow, Result},
     clap::{Parser, Subcommand},
     env_logger::Env,
@@ -55,7 +55,7 @@ impl Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    Server(ServerCli),
+    Server(Server),
     Wallet(Wallet),
     Asset(Asset),
     Transfer(Transfer),

@@ -1,5 +1,5 @@
 mod utxo;
 pub use utxo::*;
 
-mod web3;
-pub use web3::*;
+mod web3_rpc;
+pub use web3_rpc::*;

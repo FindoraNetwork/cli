@@ -1,8 +1,8 @@
-use {crate::server::Server, anyhow::Result, clap::Args};
+use {crate::server, anyhow::Result, clap::Args};
 
 #[derive(Debug, Args)]
 ///Asset Management
-pub struct ServerCli {
+pub struct Server {
     ///link to initialize findora
     #[arg(short, long, conflicts_with = "show")]
     init: bool,
@@ -44,7 +44,7 @@ pub struct ServerCli {
     show: bool,
 }
 
-impl ServerCli {
+impl Server {
     pub fn execute(self, home: &str) -> Result<()> {
         if self.init {
             let server_address = self
@@ -54,7 +54,7 @@ impl ServerCli {
             let submit_transaction_port = self.submit_transaction_port.unwrap_or(8669);
             let tendermint_port = self.tendermint_port.unwrap_or(26657);
             let web3_rpc_port = self.web3_rpc_port.unwrap_or(8545);
-            if let Err(e) = Server::new(
+            if let Err(e) = server::Server::new(
                 server_address,
                 query_port,
                 submit_transaction_port,
@@ -66,7 +66,7 @@ impl ServerCli {
                 println!("init server error: {:?}", e);
             }
         } else {
-            match Server::load_from_file(home) {
+            match server::Server::load_from_file(home) {
                 Ok(s) => {
                     println!(
                         "\x1b[31;01m{: <25}:\x1b[00m {}",
