@@ -4,7 +4,9 @@
 
 ## Guide
 
-### Create a root wallet
+### Wallet
+
+#### Create a root wallet
 
 ```shell
 # Create root wallet
@@ -13,7 +15,7 @@ $ cli wallet --create --passphrase <pass> --lang <lang>
 # Please backup output mnemonic
 ```
 
-### Show wallet
+#### Show wallet
 
 ```shell
 cli wallet --show
@@ -22,28 +24,61 @@ cli wallet --show
 
 FRA address: fra1xxxxx
 FRA public key in hex: 0xXXXX
-Amount: 0
+Amount: 0 FRA
 
 ETH address: eth1xxxxx
 ETH public key in hex: 0xXXXX
-Amount: 0
+Amount: 0 FRA
 
 EVM address: 0xXXXX
 EVM public key in hex: 0xXXXX
-Amount: 0
+# Totol FRA amount of this account, include BAR, EVM and ABAR.
+Amount: 0 FRA
 
 ```
 
-### Generate account
+#### Generate account
 
 ```shell
 cli wallet --generate --type <fra/eth/evm> --label <label>
 ```
 
-### Add account
+#### Add account
 
 ```shell
 cli wallet --add --private-key <private key> --label <label>
+```
+
+### Manage Asset
+
+#### Show Asset
+
+Show asset in brief
+
+```shell
+$ cli asset --show --address fra1XXXXXX
+
+# Output:
+Address: fra1XXXXXX
+
+# Output:
+Address: eth1XXXXXX
+100 FRA [100 FRA(EVM), 0 FRA(BAR), 0 FRA(ABAR)]
+100 USDT [0 FRA(EVM), 100 FRA(BAR), 0 FRA(ABAR)]
+100 BUSD [0 FRA(BAR), 0 FRA(ABAR)]
+```
+
+#### Add Asset
+
+```shell
+# Add USDT on UTXO
+$ cli asset --add --type utxo --asset 0xXXXXXXXX --symbol USDT
+
+# Add USDT on EVM
+$ cli asset --add --type evm --asset 0xXXXXXXXX --symbol USDT
+
+# Add USDT based on auto
+$ cli asset --add --type auto --asset 0xXXXXXXXX
 ```
 
 ## Functions
