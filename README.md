@@ -60,9 +60,19 @@ $ cli asset --show --address fra1XXXXXX
 
 # Output:
 Address: eth1XXXXXX
-100 FRA [100 FRA(EVM), 0 FRA(BAR), 0 FRA(ABAR)]
-100 USDT [0 FRA(EVM), 100 FRA(BAR), 0 FRA(ABAR)]
-100 BUSD [0 FRA(BAR), 0 FRA(ABAR)]
+100 FRA
+- 50 FRA(EVM,  0xXXXXXXXX)
+- 50 FRA(BAR,  0x000000000)
+- 0  FRA(ABAR, 0x000000000)
+
+100 USDT
+- 50 USDT(FRC20, 0xXXXXXXXX)
+- 50 USDT(BAR,   0xXXXXXXXX)
+- 0  USDT(ABAR,  0xXXXXXXXX)
+
+100 BUSD
+- 50 BUSD(BAR,   0xXXXXXXXX)
+- 0  BUSD(ABAR,  0xXXXXXXXX)
 ```
 
 #### Add Asset
@@ -72,10 +82,13 @@ Address: eth1XXXXXX
 $ cli asset --add --type utxo --asset 0xXXXXXXXX --symbol USDT
 
 # Add USDT on EVM
-$ cli asset --add --type evm --asset 0xXXXXXXXX --symbol USDT
+$ cli asset --add --type evm-frc20 --asset 0xXXXXXXXX --symbol BUSD
 
 # Add USDT based on auto
-$ cli asset --add --type auto --asset 0xXXXXXXXX
+$ cli asset --add --type frc20 --asset 0xXXXXXXXX
+
+# Add USDT based on auto
+$ cli asset --add --type frc721 --asset 0xXXXXXXXX
 ```
 
 ## Functions
