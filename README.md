@@ -85,9 +85,6 @@ $ cli asset --add --type utxo --asset 0xXXXXXXXX --symbol USDT
 $ cli asset --add --type evm-frc20 --asset 0xXXXXXXXX --symbol BUSD
 
 # Add USDT based on auto
-$ cli asset --add --type frc20 --asset 0xXXXXXXXX
-
-# Add USDT based on auto
 $ cli asset --add --type frc721 --asset 0xXXXXXXXX
 ```
 
