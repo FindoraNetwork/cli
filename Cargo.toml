@@ -17,11 +17,10 @@ bech32 = "0.7.2"
 base64 = "0.13"
 hex = "0.4.2"
 eth_checksum  = "0.1.2" 
-primitive-types = { version = "0.11.1", default-features = false, features = ["rlp", "byteorder", "serde"] }
 attohttpc = { version = "0.23", default-features = false, features = ["compress", "json", "tls-rustls"] }
 web3 = "0.18.0"
-ethabi = "16.0.0" 
-futures = "0.3.5"
+ethabi = "16.0.0"  
+tokio = { version = "1.10.1", features = ["full"] }
 
 bip0039 = { git = "https://github.com/FindoraNetwork/bip0039", branch = "fix_extra_whitespace", features = ["chinese-simplified", "chinese-traditional", "french", "italian", "korean", "spanish", "japanese"] }
 ed25519-dalek-bip32 = { git = "https://github.com/FindoraNetwork/ed25519-dalek-bip32", branch = "feat-allow-nohardened" }

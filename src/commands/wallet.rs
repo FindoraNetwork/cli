@@ -48,7 +48,7 @@ pub struct Wallet {
         conflicts_with = "import"
     )]
     create: bool,
-    ///type(fra/eth/evm) of new account, default fra
+    ///type(fra/eth/evm) of new account
     #[arg(
         short = 't',
         long = "type",
@@ -56,8 +56,7 @@ pub struct Wallet {
         conflicts_with = "init",
         conflicts_with = "mnemonic",
         conflicts_with = "passphrase",
-        conflicts_with = "show",
-        conflicts_with = "import"
+        conflicts_with = "show"
     )]
     typ: Option<String>,
     ///show all account info
@@ -81,7 +80,6 @@ pub struct Wallet {
         conflicts_with = "mnemonic",
         conflicts_with = "passphrase",
         conflicts_with = "create",
-        conflicts_with = "typ",
         conflicts_with = "show"
     )]
     import: Option<String>,
@@ -104,7 +102,10 @@ impl Wallet {
                 "fra" => AccountType::Fra,
                 "eth" => AccountType::Eth,
                 "evm" => AccountType::Evm,
-                _ => AccountType::Fra,
+                _ => {
+                    println!("please specify the create type(fra/eth/evm)");
+                    return Ok(());
+                }
             };
             match AccountMgr::load_from_file(home) {
                 Ok(mut mgr) => {

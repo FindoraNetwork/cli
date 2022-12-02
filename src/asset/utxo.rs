@@ -41,7 +41,7 @@ pub fn get_owned_utxo_balance(server: &Server, kp: &XfrKeyPair) -> Result<HashMa
     {
         let open_asset_record = open_blind_asset_record(&utxo.0.record, owner_memo, kp)
             .map_err(|e| anyhow!("open_blind_asset_record error:{:?}", e))?;
-        let asset = base64::encode_config(open_asset_record.asset_type.0, base64::URL_SAFE);
+        let asset = format!("0x{}", hex::encode(open_asset_record.asset_type.0));
 
         match map.get(&asset) {
             Some(val) => {

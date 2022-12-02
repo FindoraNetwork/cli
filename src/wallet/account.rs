@@ -2,12 +2,12 @@ use {
     anyhow::{anyhow, Result},
     bech32::ToBase32,
     ed25519_dalek_bip32::{DerivationPath, ExtendedSecretKey},
+    ethabi::ethereum_types::H160,
     noah::xfr::sig::{
         convert_libsecp256k1_public_key_to_address, XfrKeyPair, XfrPublicKey, XfrPublicKeyInner,
         XfrSecretKey,
     },
     noah_algebra::serialization::NoahFromToBytes,
-    primitive_types::H160,
     serde::{Deserialize, Serialize},
     std::{
         fs::{read_to_string, File},
@@ -149,7 +149,7 @@ impl Account {
 
     pub fn show(&self) -> Result<()> {
         println!(
-            "\x1b[31;01m{:?} Address:\x1b[00m {}",
+            "\n\x1b[31;01m{:?} Address:\x1b[00m {}",
             self.account_type, self.address
         );
         let pub_key = XfrPublicKey::noah_to_bytes(&self.get_key_pair()?.pub_key);

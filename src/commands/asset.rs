@@ -1,25 +1,67 @@
+use ethabi::ethereum_types::H160;
+
 use {
     crate::{
-        asset::{call_balance_of, get_evm_balance, get_owned_utxo_balance},
+        asset::{show_eth_address, show_evm_address, show_fra_address, AssetMgr, AssetType},
         server::Server,
         wallet::{AccountMgr, AccountType},
     },
     anyhow::Result,
-    clap::Args,
-    primitive_types::U256,
+    clap::{CommandFactory, Parser},
+    ethabi::ethereum_types::U256,
 };
 
-#[derive(Debug, Args)]
+#[derive(Parser)]
 ///Asset Management
 pub struct Asset {
-    //ERC20 Token Address
-    contract_address: Option<String>,
-    ///the address of the asset to display, default all
-    #[arg(short, long)]
+    ///show address asset
+    #[arg(
+        short,
+        long,
+        conflicts_with = "add",
+        conflicts_with = "typ",
+        conflicts_with = "asset",
+        conflicts_with = "decimals",
+        conflicts_with = "symbol",
+        conflicts_with = "contract_address",
+        conflicts_with = "token_id"
+    )]
+    show: bool,
+    ///the address of the asset to display
+    #[arg(
+        long,
+        conflicts_with = "add",
+        conflicts_with = "typ",
+        conflicts_with = "asset",
+        conflicts_with = "decimals",
+        conflicts_with = "symbol",
+        conflicts_with = "contract_address",
+        conflicts_with = "token_id"
+    )]
     address: Option<String>,
-    ///show asset type, default all
-    #[arg(short, long = "type", value_name = "TYPE")]
+    ///add asset type
+    #[arg(short, long, conflicts_with = "address", conflicts_with = "show")]
+    add: bool,
+    ///asset type(utxo,frc20,frc721,frc1155)
+    #[arg(
+        short,
+        long = "type",
+        value_name = "TYPE",
+        conflicts_with = "address",
+        conflicts_with = "show"
+    )]
     typ: Option<String>,
+    ///asset hex code
+    #[arg(long, conflicts_with = "address", conflicts_with = "show")]
+    asset: Option<String>,
+    #[arg(long, conflicts_with = "address", conflicts_with = "show")]
+    decimals: Option<u64>,
+    #[arg(long, conflicts_with = "address", conflicts_with = "show")]
+    symbol: Option<String>,
+    #[arg(long, conflicts_with = "address", conflicts_with = "show")]
+    contract_address: Option<H160>,
+    #[arg(long, conflicts_with = "address", conflicts_with = "show")]
+    token_id: Option<U256>,
 }
 
 impl Asset {
@@ -31,92 +73,143 @@ impl Asset {
                 return Ok(());
             }
         };
-        if let Some(contract_address) = self.contract_address.as_deref() {
-            let addr = match self.address.as_deref() {
+        if self.show {
+            let account_mgr = match AccountMgr::load_from_file(home) {
+                Ok(val) => val,
+                Err(e) => {
+                    println!("load account error: {:?}", e);
+                    return Ok(());
+                }
+            };
+            let asset_mgr = match AssetMgr::load_from_file(home) {
+                Ok(val) => val,
+                Err(e) => {
+                    println!("load account error: {:?}", e);
+                    return Ok(());
+                }
+            };
+            let address = match self.address.as_deref() {
                 Some(val) => val,
                 None => {
-                    println!("address can not be empty");
+                    println!("address is required");
                     return Ok(());
                 }
             };
-            let balance = match call_balance_of(&server, addr, contract_address) {
-                Ok(val) => val,
-                Err(e) => {
-                    println!("call_balance_of error:{}", e);
-                    return Ok(());
-                }
-            };
-            println!("\n\x1b[31;01m{}:\x1b[00m {}", addr, balance);
-            return Ok(());
-        }
-        let mgr = match AccountMgr::load_from_file(home) {
-            Ok(val) => val,
-            Err(e) => {
-                println!("load account error: {:?}", e);
-                return Ok(());
-            }
-        };
-
-        let address = match self.address.as_ref() {
-            Some(val) => vec![val.clone()],
-            None => {
-                let mut address = vec![];
-                for (addr, _) in mgr.accounts.iter() {
-                    address.push(addr.clone());
-                }
-                address
-            }
-        };
-        for addr in address {
-            let account = match mgr.accounts.get(&addr) {
+            let account = match account_mgr.accounts.get(address) {
                 Some(acc) => acc.clone(),
                 None => {
-                    println!("account {} not found", addr);
+                    println!("account {} not found", address);
                     return Ok(());
                 }
             };
-            let kp = match account.get_key_pair() {
-                Ok(val) => val,
-                Err(e) => {
-                    println!("account {} key pair error:{}", addr, e);
-                    return Ok(());
-                }
-            };
-            println!("\n\x1b[31;01mAddress:\x1b[00m {}", addr);
-            match account.account_type {
-                AccountType::Evm => {
-                    let balance = match get_evm_balance(&server, &addr) {
-                        Ok(v) => v,
-                        Err(e) => {
-                            println!("account {} get_evm_balance error:{}", addr, e);
-                            return Ok(());
-                        }
-                    };
-                    if U256::zero() == balance {
-                        println!("\t\x1b[31;01mAmount:\x1b[00m 0");
-                    } else {
-                        println!("\t\x1b[31;01mEvm Balance:\x1b[00m {}", balance);
+            println!("\n\x1b[31;01mAddress:\x1b[00m {}", address);
+            if !address.starts_with("0x") {
+                match account.account_type {
+                    AccountType::Fra => {
+                        let kp = match account.get_key_pair() {
+                            Ok(val) => val,
+                            Err(e) => {
+                                println!("account {} key pair error:{}", address, e);
+                                return Ok(());
+                            }
+                        };
+                        if let Err(e) = show_fra_address(&server, address, &kp, &asset_mgr) {
+                            println!("show address balance error:{}", e);
+                        };
+                    }
+                    AccountType::Eth => {
+                        let kp = match account.get_key_pair() {
+                            Ok(val) => val,
+                            Err(e) => {
+                                println!("account {} key pair error:{}", address, e);
+                                return Ok(());
+                            }
+                        };
+                        if let Err(e) = show_eth_address(&server, address, &kp, &asset_mgr) {
+                            println!("show address balance error:{}", e);
+                        };
+                    }
+                    AccountType::Evm => {
+                        if let Err(e) = show_evm_address(&server, address, &asset_mgr) {
+                            println!("show address balance error:{}", e);
+                        };
                     }
                 }
-                _ => {
-                    let utxo = match get_owned_utxo_balance(&server, &kp) {
-                        Ok(v) => v,
-                        Err(e) => {
-                            println!("account {} get_owned_utxos error:{}", addr, e);
-                            return Ok(());
-                        }
-                    };
-                    if utxo.is_empty() {
-                        println!("\t\x1b[31;01mAmount:\x1b[00m 0");
-                    } else {
-                        for (asset, amount) in utxo {
-                            println!("\t\x1b[31;01m{}:\x1b[00m {}", asset, amount);
-                        }
-                    }
-                }
+            } else {
+                if let Err(e) = show_evm_address(&server, address, &asset_mgr) {
+                    println!("show address balance error:{}", e);
+                };
             }
-        }
+            return Ok(());
+        } else if self.add {
+            let asset_type = match self.typ.as_deref() {
+                Some("utxo") => None,
+                Some("frc20") => Some(AssetType::FRC20),
+                Some("frc721") => Some(AssetType::FRC721),
+                Some("frc1155") => Some(AssetType::FRC1155),
+                _ => {
+                    println!("type not support!!!");
+                    return Ok(());
+                }
+            };
+            let utxo_asset_code = match self.asset.as_deref() {
+                Some(val) => {
+                    if val.starts_with("0x") {
+                        val
+                    } else {
+                        println!("asset_codemust be start with 0x !!!");
+                        return Ok(());
+                    }
+                }
+                None => {
+                    if asset_type.is_none() {
+                        println!("asset_code not found!!!");
+                        return Ok(());
+                    } else {
+                        ""
+                    }
+                }
+            };
+            let utxo_symbol = self.symbol.as_deref().unwrap_or("");
+            let utxo_decimals = self.decimals.unwrap_or(0);
 
+            let contract_address = if asset_type.is_some() {
+                match self.contract_address {
+                    Some(val) => val,
+                    None => {
+                        println!("contract_address not found!!!");
+                        return Ok(());
+                    }
+                }
+            } else {
+                H160::default()
+            };
+            let token_id = if Some(AssetType::FRC721) == asset_type
+                || Some(AssetType::FRC1155) == asset_type
+            {
+                match self.token_id {
+                    Some(val) => Some(val),
+                    None => {
+                        println!("token_id not found!!!");
+                        return Ok(());
+                    }
+                }
+            } else {
+                None
+            };
+            let mut mgr = AssetMgr::new(home);
+
+            if let Err(e) = match asset_type {
+                Some(val) => mgr.add_evm_asset(&server, val, contract_address, token_id),
+                None => mgr.add_utxo_asset(&server, utxo_asset_code, utxo_decimals, utxo_symbol),
+            } {
+                println!("add asset error:{}", e);
+            } else {
+                println!("add asset success");
+            }
+        } else {
+            Self::command().print_help()?;
+        }
         Ok(())
     }
 }
