@@ -8,7 +8,7 @@ use {
         server::Server,
     },
     anyhow::{anyhow, Result},
-    ethabi::ethereum_types::H160,
+    ethabi::ethereum_types::{H160, U256},
     noah::xfr::sig::{convert_libsecp256k1_public_key_to_address, XfrKeyPair, XfrPublicKeyInner},
     std::{collections::HashMap, str::FromStr},
 };
@@ -18,10 +18,10 @@ const FRA_ASSET_CODE: &str = "0x000000000000000000000000000000000000000000000000
 pub fn show_evm_address(server: &Server, address: &str, mgr: &AssetMgr) -> Result<()> {
     let url = format!("{}:{}", server.server_address, server.web3_rpc_port);
     let address = H160::from_str(address)?;
-    let bar_balance = 0;
-    let abar_balance = 0;
+    let bar_balance = U256::zero();
+    let abar_balance = U256::zero();
     let mut evm_balance = match get_evm_balance(&url, address) {
-        Ok(balance) => balance.as_u64(),
+        Ok(balance) => balance,
         Err(e) => {
             println!("account {} get_evm_balance error:{}", address, e);
             return Ok(());
@@ -30,10 +30,10 @@ pub fn show_evm_address(server: &Server, address: &str, mgr: &AssetMgr) -> Resul
     println!(
         "========================================================================================"
     );
-    println!("{: <12} FRA", bar_balance + abar_balance + evm_balance,);
-    println!("- {: <12} FRA(BAR)", bar_balance);
-    println!("- {: <12} FRA(ABAR)", abar_balance);
-    println!("- {: <12} FRA(EVM)", evm_balance);
+    println!("{} FRA", bar_balance + abar_balance + evm_balance,);
+    println!("- {} FRA(BAR)", bar_balance);
+    println!("- {} FRA(ABAR)", abar_balance);
+    println!("- {} FRA(EVM)", evm_balance);
 
     for asset in mgr.assets.values() {
         match asset.asset_type {
@@ -43,25 +43,29 @@ pub fn show_evm_address(server: &Server, address: &str, mgr: &AssetMgr) -> Resul
                     None => continue,
                 };
                 let symbol = asset.symbol.as_deref().unwrap_or("");
-                evm_balance =
-                    call_erc20_balance_of(url.as_str(), address, contract_address)?.as_u64();
+                evm_balance = call_erc20_balance_of(url.as_str(), address, contract_address)?;
+                if U256::zero() == bar_balance + abar_balance + evm_balance {
+                    continue;
+                }
                 println!("========================================================================================");
                 println!(
-                    "{: <12} {: <4}",
+                    "{} {: <4}",
                     bar_balance + abar_balance + evm_balance,
                     symbol
                 );
                 println!(
-                    "- {: <12} {: <4}(BAR,\t{})",
+                    "- {} {: <4}(BAR,{})",
                     bar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(ABAR,\t{})",
+                    "- {} {: <4}(ABAR,{})",
                     abar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(FRC20,\t{:?})",
-                    evm_balance, symbol, asset.contract_address
+                    "- {} {: <4}(FRC20,{:?})",
+                    evm_balance,
+                    symbol,
+                    asset.contract_address.unwrap_or_default()
                 );
             }
             Some(AssetType::FRC721) => {
@@ -70,25 +74,25 @@ pub fn show_evm_address(server: &Server, address: &str, mgr: &AssetMgr) -> Resul
                     None => continue,
                 };
                 let symbol = asset.symbol.as_deref().unwrap_or("");
-                evm_balance =
-                    call_erc721_balance_of(url.as_str(), address, contract_address)?.as_u64();
+                let tocken_id =
+                    match call_erc721_balance_of(url.as_str(), address, contract_address)? {
+                        Some(val) => val,
+                        None => continue,
+                    };
                 println!("========================================================================================");
+                println!("{: <4} tocken id:{} ", symbol, tocken_id);
                 println!(
-                    "{: <12} {: <4}",
-                    bar_balance + abar_balance + evm_balance,
-                    symbol
-                );
-                println!(
-                    "- {: <12} {: <4}(BAR,\t{})",
+                    "- {: >10} {: <4}(BAR,{})",
                     bar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(ABAR,\t{})",
+                    "- {} {: <4}(ABAR,{})",
                     abar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(FRC721,\t{:?})",
-                    evm_balance, symbol, asset.contract_address
+                    "- 1 {: <4}(FRC721,{:?})",
+                    symbol,
+                    asset.contract_address.unwrap_or_default()
                 );
             }
             Some(AssetType::FRC1155) => {
@@ -102,26 +106,27 @@ pub fn show_evm_address(server: &Server, address: &str, mgr: &AssetMgr) -> Resul
                     None => continue,
                 };
                 evm_balance =
-                    call_erc1155_balance_of(url.as_str(), address, tocken_id, contract_address)?
-                        .as_u64();
+                    call_erc1155_balance_of(url.as_str(), address, tocken_id, contract_address)?;
                 println!("========================================================================================");
                 println!(
-                    "{: <12} {: <4} {}",
+                    "{} {: <4} tocken id:{}",
                     bar_balance + abar_balance + evm_balance,
                     symbol,
                     tocken_id
                 );
                 println!(
-                    "- {: <12} {: <4}(BAR,\t{})",
+                    "- {} {: <4}(BAR,{})",
                     bar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(ABAR,\t{})",
+                    "- {} {: <4}(ABAR,{})",
                     abar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(FRC1155,\t{:?})",
-                    evm_balance, symbol, asset.contract_address
+                    "- {} {: <4}(FRC1155,{:?})",
+                    evm_balance,
+                    symbol,
+                    asset.contract_address.unwrap_or_default()
                 );
             }
             _ => {}
@@ -156,12 +161,13 @@ pub fn show_fra_address(
     println!(
         "========================================================================================"
     );
-    println!("{: <12} FRA", bar_balance + abar_balance + evm_balance);
-    println!("- {: <12} FRA(BAR)", bar_balance);
-    println!("- {: <12} FRA(ABAR)", abar_balance);
-    println!("- {: <12} FRA(EVM)", evm_balance);
+    println!("{} FRA", bar_balance + abar_balance + evm_balance);
+    println!("- {} FRA(BAR)", bar_balance);
+    println!("- {} FRA(ABAR)", abar_balance);
+    println!("- {} FRA(EVM)", evm_balance);
 
     for asset in mgr.assets.values() {
+        println!("========================================================================================");
         bar_balance = if let Some(val) = owned_utxo.get(&asset.utxo_asset_code) {
             *val
         } else {
@@ -172,18 +178,17 @@ pub fn show_fra_address(
         } else {
             0
         };
-        println!("========================================================================================");
         println!(
-            "{: <12} {}",
+            "{} {}",
             bar_balance + abar_balance + evm_balance,
             asset.utxo_symbol
         );
         println!(
-            "- {: <12} {: <4}(BAR,\t{})",
+            "- {} {: <4}(BAR,{})",
             bar_balance, asset.utxo_symbol, asset.utxo_asset_code
         );
         println!(
-            "- {: <12} {: <4}(ABAR,\t{})",
+            "- {} {: <4}(ABAR,{})",
             abar_balance, asset.utxo_symbol, asset.utxo_asset_code
         );
     }
@@ -211,17 +216,20 @@ pub fn show_eth_address(
     let owned_abar_utxo: HashMap<String, u64> = HashMap::new();
 
     let mut bar_balance = if let Some(val) = owned_utxo.get(FRA_ASSET_CODE) {
-        *val
+        U256::from(*val)
     } else {
-        0
+        U256::zero()
     };
     let mut abar_balance = if let Some(val) = owned_abar_utxo.get(FRA_ASSET_CODE) {
-        *val
+        U256::from(*val)
     } else {
-        0
+        U256::zero()
     };
     let mut evm_balance = match get_evm_balance(&url, evm_addr) {
-        Ok(balance) => balance.as_u64(),
+        Ok(balance) => {
+            println!("{}", balance);
+            balance
+        }
         Err(e) => {
             println!("account {} get_evm_balance error:{}", address, e);
             return Ok(());
@@ -230,10 +238,10 @@ pub fn show_eth_address(
     println!(
         "========================================================================================"
     );
-    println!("{: <12} FRA", bar_balance + abar_balance + evm_balance);
-    println!("- {: <12} FRA(BAR)", bar_balance);
-    println!("- {: <12} FRA(ABAR)", abar_balance);
-    println!("- {: <12} FRA(EVM)", evm_balance);
+    println!("{} FRA", bar_balance + abar_balance + evm_balance);
+    println!("- {} FRA(BAR)", bar_balance);
+    println!("- {} FRA(ABAR)", abar_balance);
+    println!("- {} FRA(EVM)", evm_balance);
 
     for asset in mgr.assets.values() {
         match asset.asset_type {
@@ -243,25 +251,29 @@ pub fn show_eth_address(
                     None => continue,
                 };
                 let symbol = asset.symbol.as_deref().unwrap_or("");
-                evm_balance =
-                    call_erc20_balance_of(url.as_str(), evm_addr, contract_address)?.as_u64();
+                evm_balance = call_erc20_balance_of(url.as_str(), evm_addr, contract_address)?;
+                if U256::zero() == bar_balance + abar_balance + evm_balance {
+                    continue;
+                }
                 println!("========================================================================================");
                 println!(
-                    "{: <12} {: <4}",
+                    "{} {: <4}",
                     bar_balance + abar_balance + evm_balance,
                     symbol
                 );
                 println!(
-                    "- {: <12} {: <4}(BAR,\t{})",
+                    "- {} {: <4}(BAR,{})",
                     bar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(ABAR,\t{})",
+                    "- {} {: <4}(ABAR,{})",
                     abar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(FRC20,\t{:?})",
-                    evm_balance, symbol, asset.contract_address
+                    "- {} {: <4}(FRC20,{:?})",
+                    evm_balance,
+                    symbol,
+                    asset.contract_address.unwrap_or_default()
                 );
             }
             Some(AssetType::FRC721) => {
@@ -270,25 +282,25 @@ pub fn show_eth_address(
                     None => continue,
                 };
                 let symbol = asset.symbol.as_deref().unwrap_or("");
-                evm_balance =
-                    call_erc721_balance_of(url.as_str(), evm_addr, contract_address)?.as_u64();
+                let tocken_id =
+                    match call_erc721_balance_of(url.as_str(), evm_addr, contract_address)? {
+                        Some(val) => val,
+                        None => continue,
+                    };
                 println!("========================================================================================");
+                println!("{: <4} tocken id:{} ", symbol, tocken_id);
                 println!(
-                    "{: <12} {: <4}",
-                    bar_balance + abar_balance + evm_balance,
-                    symbol
-                );
-                println!(
-                    "- {: <12} {: <4}(BAR,\t{})",
+                    "- {: >10} {: <4}(BAR,{})",
                     bar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(ABAR,\t{})",
+                    "- {} {: <4}(ABAR,{})",
                     abar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(FRC721,\t{:?})",
-                    evm_balance, symbol, asset.contract_address
+                    "- 1 {: <4}(FRC721,{:?})",
+                    symbol,
+                    asset.contract_address.unwrap_or_default()
                 );
             }
             Some(AssetType::FRC1155) => {
@@ -302,51 +314,52 @@ pub fn show_eth_address(
                     None => continue,
                 };
                 evm_balance =
-                    call_erc1155_balance_of(url.as_str(), evm_addr, tocken_id, contract_address)?
-                        .as_u64();
+                    call_erc1155_balance_of(url.as_str(), evm_addr, tocken_id, contract_address)?;
                 println!("========================================================================================");
                 println!(
-                    "{: <12} {: <4} {}",
+                    "{} {: <4} tocken id:{}",
                     bar_balance + abar_balance + evm_balance,
                     symbol,
                     tocken_id
                 );
                 println!(
-                    "- {: <12} {: <4}(BAR,\t{})",
+                    "- {} {: <4}(BAR,{})",
                     bar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(ABAR,\t{})",
+                    "- {} {: <4}(ABAR,{})",
                     abar_balance, symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(FRC1155,\t{:?})",
-                    evm_balance, symbol, asset.contract_address
+                    "- {} {: <4}(FRC1155,{:?})",
+                    evm_balance,
+                    symbol,
+                    asset.contract_address.unwrap_or_default()
                 );
             }
             None => {
-                bar_balance = if let Some(val) = owned_utxo.get(&asset.utxo_asset_code) {
-                    *val
+                bar_balance = if let Some(val) = owned_utxo.get(FRA_ASSET_CODE) {
+                    U256::from(*val)
                 } else {
-                    0
+                    U256::zero()
                 };
-                abar_balance = if let Some(val) = owned_abar_utxo.get(&asset.utxo_asset_code) {
-                    *val
+                abar_balance = if let Some(val) = owned_abar_utxo.get(FRA_ASSET_CODE) {
+                    U256::from(*val)
                 } else {
-                    0
+                    U256::zero()
                 };
                 println!("========================================================================================");
                 println!(
-                    "{: <12} {: <4}",
+                    "{} {: <4}",
                     bar_balance + abar_balance + evm_balance,
                     asset.utxo_symbol
                 );
                 println!(
-                    "- {: <12} {: <4}(BAR,\t{})",
+                    "- {} {: <4}(BAR,{})",
                     bar_balance, asset.utxo_symbol, asset.utxo_asset_code
                 );
                 println!(
-                    "- {: <12} {: <4}(ABAR,\t{})",
+                    "- {} {: <4}(ABAR,{})",
                     abar_balance, asset.utxo_symbol, asset.utxo_asset_code
                 );
             }

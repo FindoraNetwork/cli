@@ -1,5 +1,3 @@
-use ethabi::ethereum_types::H160;
-
 use {
     crate::{
         asset::{show_eth_address, show_evm_address, show_fra_address, AssetMgr, AssetType},
@@ -8,7 +6,7 @@ use {
     },
     anyhow::Result,
     clap::{CommandFactory, Parser},
-    ethabi::ethereum_types::U256,
+    ethabi::ethereum_types::{H160, U256},
 };
 
 #[derive(Parser)]
@@ -171,6 +169,12 @@ impl Asset {
                 }
             };
             let utxo_symbol = self.symbol.as_deref().unwrap_or("");
+            if Some(AssetType::FRC1155) == asset_type || asset_type.is_none() {
+                if utxo_symbol.is_empty() {
+                    println!("symbol not found!!!");
+                    return Ok(());
+                }
+            }
             let utxo_decimals = self.decimals.unwrap_or(0);
 
             let contract_address = if asset_type.is_some() {
@@ -200,7 +204,9 @@ impl Asset {
             let mut mgr = AssetMgr::new(home);
 
             if let Err(e) = match asset_type {
-                Some(val) => mgr.add_evm_asset(&server, val, contract_address, token_id),
+                Some(val) => {
+                    mgr.add_evm_asset(&server, val, contract_address, token_id, utxo_symbol)
+                }
                 None => mgr.add_utxo_asset(&server, utxo_asset_code, utxo_decimals, utxo_symbol),
             } {
                 println!("add asset error:{}", e);

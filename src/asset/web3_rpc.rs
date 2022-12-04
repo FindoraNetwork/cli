@@ -19,5 +19,10 @@ pub fn get_evm_balance(url: &str, addr: H160) -> Result<U256> {
     let val = val["result"]
         .as_str()
         .ok_or_else(|| anyhow!("result not fount"))?;
+    let val = if val.starts_with("0x") {
+        &val[2..]
+    } else {
+        val
+    };
     Ok(U256::from_str_radix(val, 16)?)
 }

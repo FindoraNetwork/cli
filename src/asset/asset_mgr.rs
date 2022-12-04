@@ -110,7 +110,7 @@ impl AssetMgr {
                 let symbol = get_erc721_symbol(url.as_str(), nft_address)?;
                 asset.update_asset(
                     self.home.as_str(),
-                    AssetType::FRC20,
+                    AssetType::FRC721,
                     nft_address,
                     Some(tocken_id),
                     None,
@@ -122,11 +122,11 @@ impl AssetMgr {
                     get_erc1155_tocken(url.as_str(), asset_address, utxo_asset_code)?;
                 asset.update_asset(
                     self.home.as_str(),
-                    AssetType::FRC20,
+                    AssetType::FRC1155,
                     nft_address,
                     Some(tocken_id),
                     None,
-                    None,
+                    Some(asset.utxo_symbol.clone()),
                 )?;
             }
             None => return Ok(()),
@@ -141,6 +141,7 @@ impl AssetMgr {
         asset_type: AssetType,
         contract_address: H160,
         token_id: Option<U256>,
+        utxo_symbol: &str,
     ) -> Result<()> {
         let home_path = Path::new(self.home.as_str());
         if !home_path.exists() {
@@ -224,12 +225,12 @@ impl AssetMgr {
                     self.home.as_str(),
                     utxo_asset_code.as_str(),
                     0,
-                    "",
+                    utxo_symbol,
                     Some(AssetType::FRC1155),
                     Some(contract_address),
                     None,
                     None,
-                    None,
+                    Some(utxo_symbol.to_string()),
                 )?;
                 self.assets.insert(utxo_asset_code.to_string(), asset);
                 Ok(())

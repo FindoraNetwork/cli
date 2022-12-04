@@ -88,7 +88,7 @@ pub fn call_erc20_balance_of(url: &str, address: H160, contract_address: H160) -
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    let val = String::from_utf8_lossy(&balance.0).to_string();
+    let val = hex::encode(balance.0);
     Ok(U256::from_str_radix(val.as_str(), 16)?)
 }
 
@@ -122,7 +122,11 @@ pub fn get_erc721_symbol(url: &str, contract_address: H160) -> Result<String> {
     }
 }
 
-pub fn call_erc721_balance_of(url: &str, address: H160, contract_address: H160) -> Result<U256> {
+pub fn call_erc721_balance_of(
+    url: &str,
+    address: H160,
+    contract_address: H160,
+) -> Result<Option<U256>> {
     let transport = Http::new(url)?;
     let web3 = Web3::new(transport);
     let json = include_str!("./abi/ERC721.abi.json");
@@ -145,8 +149,12 @@ pub fn call_erc721_balance_of(url: &str, address: H160, contract_address: H160) 
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    let val = String::from_utf8_lossy(&balance.0).to_string();
-    Ok(U256::from_str_radix(val.as_str(), 16)?)
+    if balance.0.is_empty() {
+        Ok(None)
+    } else {
+        let val = hex::encode(balance.0);
+        Ok(Some(U256::from_str_radix(val.as_str(), 16)?))
+    }
 }
 
 pub fn call_erc1155_balance_of(
@@ -157,7 +165,7 @@ pub fn call_erc1155_balance_of(
 ) -> Result<U256> {
     let transport = Http::new(url)?;
     let web3 = Web3::new(transport);
-    let json = include_str!("./abi/ERC20.abi.json");
+    let json = include_str!("./abi/ERC1155.abi.json");
     let abi = Contract::load(json.as_bytes())?;
     let data = abi
         .function("balanceOf")?
@@ -177,6 +185,6 @@ pub fn call_erc1155_balance_of(
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    let val = String::from_utf8_lossy(&balance.0).to_string();
+    let val = hex::encode(balance.0);
     Ok(U256::from_str_radix(val.as_str(), 16)?)
 }
