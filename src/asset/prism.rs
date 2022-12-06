@@ -1,5 +1,5 @@
 use {
-    crate::server::Server,
+    crate::chain_net::ChainNet,
     anyhow::{anyhow, Result},
     ethabi::{Contract, ParamType, Token},
     serde_json::Value,
@@ -12,10 +12,10 @@ use {
     },
 };
 
-pub fn get_prism_proxy_address(server: &Server) -> Result<H160> {
+pub fn get_prism_proxy_address(chain_net: &ChainNet) -> Result<H160> {
     let url = format!(
         "{}:{}/display_checkpoint",
-        server.server_address, server.query_port
+        chain_net.chain_net_address, chain_net.query_port
     );
     let val = attohttpc::get(&url)
         .send()?

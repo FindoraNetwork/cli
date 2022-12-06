@@ -1,14 +1,16 @@
 use {
-    super::{
-        get_bridge_address, get_erc20_decimals, get_erc20_symbol, get_erc721_symbol,
-        prism::{
-            compute_erc20_asset_type, compute_nft_asset_type, get_asset_address,
-            get_erc1155_tocken, get_erc20_tocken, get_erc721_tocken, get_prism_proxy_address,
-            get_tocken_type, TokenType,
+    crate::{
+        asset::{
+            get_bridge_address, get_erc20_decimals, get_erc20_symbol, get_erc721_symbol,
+            prism::{
+                compute_erc20_asset_type, compute_nft_asset_type, get_asset_address,
+                get_erc1155_tocken, get_erc20_tocken, get_erc721_tocken, get_prism_proxy_address,
+                get_tocken_type, TokenType,
+            },
+            Asset, AssetType, ASSET_DIRECTORY,
         },
-        Asset, AssetType, ASSET_DIRECTORY,
+        chain_net::ChainNet,
     },
-    crate::server::Server,
     anyhow::{anyhow, Result},
     ethabi::ethereum_types::{H160, U256},
     std::{
@@ -31,10 +33,6 @@ impl AssetMgr {
         }
     }
     pub fn load_from_file(home: &str) -> Result<Self> {
-        let home_path = Path::new(home);
-        if !home_path.exists() {
-            create_dir_all(home_path)?;
-        }
         let asset_path = format!("{}/{}", home, ASSET_DIRECTORY);
         let asset_path = Path::new(asset_path.as_str());
         if !asset_path.exists() {
@@ -57,22 +55,21 @@ impl AssetMgr {
 
     pub fn add_utxo_asset(
         &mut self,
-        server: &Server,
+        chain_net: &ChainNet,
         utxo_asset_code: &str,
         utxo_decimals: u64,
         utxo_symbol: &str,
     ) -> Result<()> {
-        let home_path = Path::new(self.home.as_str());
-        if !home_path.exists() {
-            create_dir_all(home_path)?;
-        }
         let asset_path = format!("{}/{}", self.home.as_str(), ASSET_DIRECTORY);
         let asset_path = Path::new(asset_path.as_str());
         if !asset_path.exists() {
             create_dir_all(asset_path)?;
         }
-        let url = format!("{}:{}", server.server_address, server.web3_rpc_port);
-        let prism_proxy_address = get_prism_proxy_address(server)?;
+        let url = format!(
+            "{}:{}",
+            chain_net.chain_net_address, chain_net.web3_rpc_port
+        );
+        let prism_proxy_address = get_prism_proxy_address(chain_net)?;
         let bridge_address = get_bridge_address(url.as_str(), prism_proxy_address)?;
         let asset_address = get_asset_address(url.as_str(), bridge_address)?;
         let tocken_type = get_tocken_type(url.as_str(), asset_address, utxo_asset_code)?;
@@ -137,24 +134,23 @@ impl AssetMgr {
 
     pub fn add_evm_asset(
         &mut self,
-        server: &Server,
+        chain_net: &ChainNet,
         asset_type: AssetType,
         contract_address: H160,
         token_id: Option<U256>,
         utxo_symbol: &str,
     ) -> Result<()> {
-        let home_path = Path::new(self.home.as_str());
-        if !home_path.exists() {
-            create_dir_all(home_path)?;
-        }
         let asset_path = format!("{}/{}", self.home.as_str(), ASSET_DIRECTORY);
         let asset_path = Path::new(asset_path.as_str());
         if !asset_path.exists() {
             create_dir_all(asset_path)?;
         }
 
-        let url = format!("{}:{}", server.server_address, server.web3_rpc_port);
-        let prism_proxy_address = get_prism_proxy_address(server)?;
+        let url = format!(
+            "{}:{}",
+            chain_net.chain_net_address, chain_net.web3_rpc_port
+        );
+        let prism_proxy_address = get_prism_proxy_address(chain_net)?;
         let bridge_address = get_bridge_address(url.as_str(), prism_proxy_address)?;
 
         match asset_type {

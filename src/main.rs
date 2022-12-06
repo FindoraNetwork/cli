@@ -1,6 +1,6 @@
 mod asset;
+mod chain_net;
 mod commands;
-mod server;
 mod wallet;
 
 use clap::Parser;

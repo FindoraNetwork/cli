@@ -1,7 +1,7 @@
 use {
     crate::{
         asset::{show_eth_address, show_evm_address, show_fra_address, AssetMgr, AssetType},
-        server::Server,
+        chain_net::ChainNet,
         wallet::{AccountMgr, AccountType},
     },
     anyhow::Result,
@@ -63,14 +63,7 @@ pub struct Asset {
 }
 
 impl Asset {
-    pub fn execute(self, home: &str) -> Result<()> {
-        let server = match Server::load_from_file(home) {
-            Ok(val) => val,
-            Err(e) => {
-                println!("load server info error: {:?}", e);
-                return Ok(());
-            }
-        };
+    pub fn execute(self, chain_net: &ChainNet, home: &str) -> Result<()> {
         if self.show {
             let account_mgr = match AccountMgr::load_from_file(home) {
                 Ok(val) => val,
@@ -111,7 +104,7 @@ impl Asset {
                                 return Ok(());
                             }
                         };
-                        if let Err(e) = show_fra_address(&server, address, &kp, &asset_mgr) {
+                        if let Err(e) = show_fra_address(&chain_net, address, &kp, &asset_mgr) {
                             println!("show address balance error:{}", e);
                         };
                     }
@@ -123,18 +116,18 @@ impl Asset {
                                 return Ok(());
                             }
                         };
-                        if let Err(e) = show_eth_address(&server, address, &kp, &asset_mgr) {
+                        if let Err(e) = show_eth_address(&chain_net, address, &kp, &asset_mgr) {
                             println!("show address balance error:{}", e);
                         };
                     }
                     AccountType::Evm => {
-                        if let Err(e) = show_evm_address(&server, address, &asset_mgr) {
+                        if let Err(e) = show_evm_address(&chain_net, address, &asset_mgr) {
                             println!("show address balance error:{}", e);
                         };
                     }
                 }
             } else {
-                if let Err(e) = show_evm_address(&server, address, &asset_mgr) {
+                if let Err(e) = show_evm_address(&chain_net, address, &asset_mgr) {
                     println!("show address balance error:{}", e);
                 };
             }
@@ -205,9 +198,9 @@ impl Asset {
 
             if let Err(e) = match asset_type {
                 Some(val) => {
-                    mgr.add_evm_asset(&server, val, contract_address, token_id, utxo_symbol)
+                    mgr.add_evm_asset(&chain_net, val, contract_address, token_id, utxo_symbol)
                 }
-                None => mgr.add_utxo_asset(&server, utxo_asset_code, utxo_decimals, utxo_symbol),
+                None => mgr.add_utxo_asset(&chain_net, utxo_asset_code, utxo_decimals, utxo_symbol),
             } {
                 println!("add asset error:{}", e);
             } else {

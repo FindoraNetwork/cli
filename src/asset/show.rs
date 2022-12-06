@@ -1,11 +1,10 @@
 use {
-    super::{AssetMgr, AssetType},
     crate::{
         asset::{
             call_erc1155_balance_of, call_erc20_balance_of, call_erc721_balance_of,
-            get_evm_balance, get_owned_utxo_balance,
+            get_evm_balance, get_owned_utxo_balance, AssetMgr, AssetType,
         },
-        server::Server,
+        chain_net::ChainNet,
     },
     anyhow::{anyhow, Result},
     ethabi::ethereum_types::{H160, U256},
@@ -15,8 +14,11 @@ use {
 
 const FRA_ASSET_CODE: &str = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-pub fn show_evm_address(server: &Server, address: &str, mgr: &AssetMgr) -> Result<()> {
-    let url = format!("{}:{}", server.server_address, server.web3_rpc_port);
+pub fn show_evm_address(chain_net: &ChainNet, address: &str, mgr: &AssetMgr) -> Result<()> {
+    let url = format!(
+        "{}:{}",
+        chain_net.chain_net_address, chain_net.web3_rpc_port
+    );
     let address = H160::from_str(address)?;
     let bar_balance = U256::zero();
     let abar_balance = U256::zero();
@@ -135,12 +137,12 @@ pub fn show_evm_address(server: &Server, address: &str, mgr: &AssetMgr) -> Resul
     Ok(())
 }
 pub fn show_fra_address(
-    server: &Server,
+    chain_net: &ChainNet,
     address: &str,
     kp: &XfrKeyPair,
     mgr: &AssetMgr,
 ) -> Result<()> {
-    let owned_utxo = match get_owned_utxo_balance(&server, &kp) {
+    let owned_utxo = match get_owned_utxo_balance(&chain_net, &kp) {
         Ok(utxo) => utxo,
         Err(e) => {
             return Err(anyhow!("account {} get_owned_utxos error:{}", address, e));
@@ -195,19 +197,22 @@ pub fn show_fra_address(
     Ok(())
 }
 pub fn show_eth_address(
-    server: &Server,
+    chain_net: &ChainNet,
     address: &str,
     kp: &XfrKeyPair,
     mgr: &AssetMgr,
 ) -> Result<()> {
-    let url = format!("{}:{}", server.server_address, server.web3_rpc_port);
+    let url = format!(
+        "{}:{}",
+        chain_net.chain_net_address, chain_net.web3_rpc_port
+    );
     let evm_addr = if let XfrPublicKeyInner::Secp256k1(pub_key) = kp.pub_key.inner() {
         H160::from(convert_libsecp256k1_public_key_to_address(pub_key))
     } else {
         return Err(anyhow!("evm public key error"));
     };
 
-    let owned_utxo = match get_owned_utxo_balance(&server, &kp) {
+    let owned_utxo = match get_owned_utxo_balance(&chain_net, &kp) {
         Ok(utxo) => utxo,
         Err(e) => {
             return Err(anyhow!("account {} get_owned_utxos error:{}", address, e));

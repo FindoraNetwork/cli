@@ -10,5 +10,5 @@ pub use asset::*;
 mod wallet;
 pub use wallet::*;
 
-mod server;
-pub use server::*;
+mod chain_net;
+pub use chain_net::*;

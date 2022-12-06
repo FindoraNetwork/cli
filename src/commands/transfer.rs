@@ -1,4 +1,4 @@
-use {anyhow::Result, clap::Args};
+use {crate::chain_net::ChainNet, anyhow::Result, clap::Args};
 
 #[derive(Debug, Args)]
 /// Do transfer
@@ -32,7 +32,7 @@ pub struct Transfer {
 }
 
 impl Transfer {
-    pub fn execute(self, _home: &str) -> Result<()> {
+    pub fn execute(self, _chain_net: &ChainNet, _home: &str) -> Result<()> {
         Ok(())
     }
 }

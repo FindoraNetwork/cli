@@ -1,5 +1,8 @@
 use {
-    crate::wallet::{AccountMgr, AccountType},
+    crate::{
+        chain_net::ChainNet,
+        wallet::{AccountMgr, AccountType},
+    },
     anyhow::Result,
     clap::Args,
 };
@@ -86,7 +89,7 @@ pub struct Wallet {
 }
 
 impl Wallet {
-    pub fn execute(&self, home: &str) -> Result<()> {
+    pub fn execute(&self, _chain_net: &ChainNet, home: &str) -> Result<()> {
         if self.init {
             let lang = "en";
             let wordslen = 24;

@@ -1,5 +1,5 @@
 use {
-    crate::server::Server,
+    crate::chain_net::ChainNet,
     anyhow::{anyhow, Result},
     noah::xfr::{
         asset_record::open_blind_asset_record,
@@ -23,11 +23,14 @@ pub struct TxOutput {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Utxo(pub TxOutput);
 
-pub fn get_owned_utxo_balance(server: &Server, kp: &XfrKeyPair) -> Result<HashMap<String, u64>> {
+pub fn get_owned_utxo_balance(
+    chain_net: &ChainNet,
+    kp: &XfrKeyPair,
+) -> Result<HashMap<String, u64>> {
     let url = format!(
         "{}:{}/owned_utxos/{}",
-        server.server_address,
-        server.query_port,
+        chain_net.chain_net_address,
+        chain_net.query_port,
         base64::encode_config(
             &NoahFromToBytes::noah_to_bytes(&kp.pub_key),
             base64::URL_SAFE
