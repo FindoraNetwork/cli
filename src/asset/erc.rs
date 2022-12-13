@@ -46,7 +46,7 @@ pub fn get_erc20_decimals(url: &str, contract_address: H160) -> Result<U256> {
     let json = include_str!("./abi/ERC20.abi.json");
     let abi = Contract::load(json.as_bytes())?;
     let data = abi.function("decimals")?.encode_input(&[])?;
-    let balance = Runtime::new()?.block_on(web3.eth().call(
+    let decimals = Runtime::new()?.block_on(web3.eth().call(
         CallRequest {
             from: None,
             to: Some(contract_address),
@@ -61,8 +61,13 @@ pub fn get_erc20_decimals(url: &str, contract_address: H160) -> Result<U256> {
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    let val = hex::encode(&balance.0);
-    Ok(U256::from_str_radix(val.as_str(), 16)?)
+    let ret = ethabi::decode(&[ParamType::Uint(256)], &decimals.0)?;
+    let decimals = if let Some(Token::Uint(decimals)) = ret.get(0) {
+        decimals.clone()
+    } else {
+        return Err(anyhow!("decimals not found"));
+    };
+    Ok(decimals)
 }
 
 pub fn call_erc20_balance_of(url: &str, address: H160, contract_address: H160) -> Result<U256> {
@@ -88,8 +93,13 @@ pub fn call_erc20_balance_of(url: &str, address: H160, contract_address: H160) -
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    let val = hex::encode(balance.0);
-    Ok(U256::from_str_radix(val.as_str(), 16)?)
+    let ret = ethabi::decode(&[ParamType::Uint(256)], &balance.0)?;
+    let balance = if let Some(Token::Uint(balance)) = ret.get(1) {
+        balance.clone()
+    } else {
+        return Err(anyhow!("balance not found"));
+    };
+    Ok(balance)
 }
 
 pub fn get_erc721_symbol(url: &str, contract_address: H160) -> Result<String> {
@@ -149,11 +159,11 @@ pub fn call_erc721_balance_of(
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    if balance.0.is_empty() {
-        Ok(None)
+    let ret = ethabi::decode(&[ParamType::Uint(256)], &balance.0)?;
+    if let Some(Token::Uint(balance)) = ret.get(0) {
+        Ok(Some(balance.clone()))
     } else {
-        let val = hex::encode(balance.0);
-        Ok(Some(U256::from_str_radix(val.as_str(), 16)?))
+        Ok(None)
     }
 }
 
@@ -185,6 +195,10 @@ pub fn call_erc1155_balance_of(
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    let val = hex::encode(balance.0);
-    Ok(U256::from_str_radix(val.as_str(), 16)?)
+    let ret = ethabi::decode(&[ParamType::Uint(256)], &balance.0)?;
+    if let Some(Token::Uint(balance)) = ret.get(0) {
+        Ok(balance.clone())
+    } else {
+        Err(anyhow!("balance not found"))
+    }
 }

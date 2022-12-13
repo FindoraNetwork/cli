@@ -1,7 +1,7 @@
 use {
     crate::server::Server,
     anyhow::{anyhow, Result},
-    ethabi::{Contract, Token},
+    ethabi::{Contract, ParamType, Token},
     serde_json::Value,
     std::str::FromStr,
     tokio::runtime::Runtime,
@@ -50,7 +50,12 @@ pub fn get_bridge_address(url: &str, prism_proxy_address: H160) -> Result<H160> 
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    Ok(H160::from_slice(&addr.0.to_vec()[12..]))
+    let ret = ethabi::decode(&[ParamType::Address], &addr.0)?;
+    if let Some(Token::Address(addr)) = ret.get(0) {
+        Ok(addr.clone())
+    } else {
+        Err(anyhow!(" address not found"))
+    }
 }
 
 pub fn get_asset_address(url: &str, bridge_address: H160) -> Result<H160> {
@@ -75,7 +80,12 @@ pub fn get_asset_address(url: &str, bridge_address: H160) -> Result<H160> {
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    Ok(H160::from_slice(&addr.0.to_vec()[12..]))
+    let ret = ethabi::decode(&[ParamType::Address], &addr.0)?;
+    if let Some(Token::Address(addr)) = ret.get(0) {
+        Ok(addr.clone())
+    } else {
+        Err(anyhow!(" address not found"))
+    }
 }
 
 pub fn compute_erc20_asset_type(
@@ -176,20 +186,37 @@ pub fn get_tocken_type(
         },
         Some(BlockId::Number(BlockNumber::Latest)),
     ))?;
-    let asset_type = U256::from_str_radix(hex::encode(&bytes.0).as_str(), 16)?;
-    let token_type = match asset_type.as_usize() {
+    let token_type = U256::from_str_radix(hex::encode(&bytes.0).as_str(), 16)?;
+    // let token_type = ethabi::decode(&[ParamType::Uint(256)], &bytes.0)?;
+    // let token_type = if let Some(Token::Uint(token_type)) = token_type.get(1) {
+    //     token_type.clone()
+    // } else {
+    //     return Err(anyhow!("token_type not found"));
+    // };
+    Ok(match token_type.as_usize() {
         0 => Some(TokenType::ERC20),
         1 => Some(TokenType::ERC721),
         2 => Some(TokenType::ERC1155),
         _ => None,
-    };
-    Ok(token_type)
+    })
 }
 
 pub fn get_erc20_tocken(url: &str, asset_address: H160, asset_code: &str) -> Result<Option<H160>> {
     let data = get_tocken_info(url, asset_address, &asset_code, "getERC20Info")?;
+    // match ethabi::decode(&[ParamType::Address], &data) {
+    //     Ok(ret) => {
+    //         if let Some(Token::Address(addr)) = ret.get(0) {
+    //             Ok(Some(addr.clone()))
+    //         } else {
+    //             Ok(None)
+    //         }
+    //     }
+    //     Err(e) => {
+    //         println!("decode error:{}", e);
+    //         Ok(None)
+    //     }
+    // }
     let addr = H160::from_slice(&data[12..]);
-
     if H160::default() == addr {
         Ok(None)
     } else {
@@ -199,8 +226,18 @@ pub fn get_erc20_tocken(url: &str, asset_address: H160, asset_code: &str) -> Res
 
 pub fn get_erc721_tocken(url: &str, asset_address: H160, asset_code: &str) -> Result<(H160, U256)> {
     let data = get_tocken_info(url, asset_address, asset_code, "getERC721Info")?;
-    let tocken_id = U256::from_str_radix(hex::encode(&data[33..]).as_str(), 16)?;
-    Ok((H160::from_slice(&data[12..32]), tocken_id))
+    let ret = ethabi::decode(&[ParamType::Address, ParamType::Uint(256)], &data)?;
+    let addr = if let Some(Token::Address(addr)) = ret.get(0) {
+        addr.clone()
+    } else {
+        return Err(anyhow!("address not found"));
+    };
+    let tocken_id = if let Some(Token::Uint(tocken_id)) = ret.get(1) {
+        tocken_id.clone()
+    } else {
+        return Err(anyhow!("tocken_id not found"));
+    };
+    Ok((addr, tocken_id))
 }
 pub fn get_erc1155_tocken(
     url: &str,
@@ -208,8 +245,18 @@ pub fn get_erc1155_tocken(
     asset_code: &str,
 ) -> Result<(H160, U256)> {
     let data = get_tocken_info(url, asset_address, asset_code, "getERC1155Info")?;
-    let tocken_id = U256::from_str_radix(hex::encode(&data[33..]).as_str(), 16)?;
-    Ok((H160::from_slice(&data[12..32]), tocken_id))
+    let ret = ethabi::decode(&[ParamType::Address, ParamType::Uint(256)], &data)?;
+    let addr = if let Some(Token::Address(addr)) = ret.get(0) {
+        addr.clone()
+    } else {
+        return Err(anyhow!("address not found"));
+    };
+    let tocken_id = if let Some(Token::Uint(tocken_id)) = ret.get(1) {
+        tocken_id.clone()
+    } else {
+        return Err(anyhow!("tocken_id not found"));
+    };
+    Ok((addr, tocken_id))
 }
 
 fn get_tocken_info(
