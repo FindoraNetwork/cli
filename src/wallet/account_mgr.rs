@@ -50,9 +50,9 @@ impl AccountMgr {
         let seed = root_account.get_seed()?;
         let account = Account::generate(AccountType::Fra, 0, &seed, home)?;
         accounts.insert(account.address.clone(), account);
-        let account = Account::generate(AccountType::Eth, 1, &seed, home)?;
+        let account = Account::generate(AccountType::Eth, 0, &seed, home)?;
         accounts.insert(account.address.clone(), account);
-        let account = Account::generate(AccountType::Evm, 2, &seed, home)?;
+        let account = Account::generate(AccountType::Evm, 0, &seed, home)?;
         accounts.insert(account.address.clone(), account);
         Ok(AccountMgr {
             home: String::from(home),
