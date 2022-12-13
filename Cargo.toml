@@ -21,11 +21,24 @@ attohttpc = { version = "0.23", default-features = false, features = ["compress"
 web3 = "0.18.0"
 ethabi = "16.0.0"  
 tokio = { version = "1.10.1", features = ["full"] }
+lazy_static = { version = "1.2.0" }
+serde-strz = "1.1.1"
+rand_chacha = "0.3"
+
+globutils = { path = "./libs/globutils" }
+bitmap = { path = "./libs/bitmap" }
+cryptohash = { path = "./libs/cryptohash" }
+credentials = { path = "./libs/credentials"}
+merkle_tree = { path = "./libs/merkle_tree" }
+sliding_set = { path = "./libs/sliding_set" }
 
 bip0039 = { git = "https://github.com/FindoraNetwork/bip0039", branch = "fix_extra_whitespace", features = ["chinese-simplified", "chinese-traditional", "french", "italian", "korean", "spanish", "japanese"] }
 ed25519-dalek-bip32 = { git = "https://github.com/FindoraNetwork/ed25519-dalek-bip32", branch = "feat-allow-nohardened" }
-noah  = { git = "https://github.com/FindoraNetwork/noah", tag = "v0.3.0" }  
-noah-algebra  = { git = "https://github.com/FindoraNetwork/noah", tag = "v0.3.0" }
+curve25519-dalek = { git = "https://github.com/FindoraNetwork/curve25519-dalek", tag = "v3.2.0-f" }
+
+noah = { git = "https://github.com/FindoraNetwork/noah", tag = "v0.3.0" }
+noah-crypto = { git = "https://github.com/FindoraNetwork/noah", tag = "v0.3.0" }
+noah-algebra = { git = "https://github.com/FindoraNetwork/noah", tag = "v0.3.0" }
 
 [patch.crates-io]
 ark-ec = { git = "https://github.com/FindoraNetwork/ark-algebra", tag = "stable-2022" }

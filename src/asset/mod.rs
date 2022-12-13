@@ -18,3 +18,6 @@ pub use prism::*;
 
 mod show;
 pub use show::*;
+
+pub const FRA_ASSET_CODE: &str =
+    "0x0000000000000000000000000000000000000000000000000000000000000000";

@@ -1,6 +1,9 @@
 mod asset;
 mod chain_net;
 mod commands;
+mod transfer;
+mod txn_builder;
+mod utils;
 mod wallet;
 
 use clap::Parser;

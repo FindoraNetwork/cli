@@ -2,7 +2,7 @@ use {
     crate::{
         asset::{
             call_erc1155_balance_of, call_erc20_balance_of, call_erc721_balance_of,
-            get_evm_balance, get_owned_utxo_balance, AssetMgr, AssetType,
+            get_evm_balance, get_owned_utxo_balance, AssetMgr, AssetType, FRA_ASSET_CODE,
         },
         chain_net::ChainNet,
     },
@@ -11,8 +11,6 @@ use {
     noah::xfr::sig::{convert_libsecp256k1_public_key_to_address, XfrKeyPair, XfrPublicKeyInner},
     std::{collections::HashMap, str::FromStr},
 };
-
-const FRA_ASSET_CODE: &str = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 pub fn show_evm_address(chain_net: &ChainNet, address: &str, mgr: &AssetMgr) -> Result<()> {
     let url = format!(
