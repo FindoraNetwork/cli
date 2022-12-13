@@ -1,3 +1,5 @@
+mod asset;
+mod chain_net;
 mod commands;
 mod wallet;
 

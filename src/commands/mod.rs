@@ -9,3 +9,6 @@ pub use asset::*;
 
 mod wallet;
 pub use wallet::*;
+
+mod chain_net;
+pub use chain_net::*;

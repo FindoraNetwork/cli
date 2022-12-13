@@ -1,6 +1,5 @@
 use {
-    super::{Account, RootAccount, ACCOUNT_DIRECTORY},
-    crate::wallet::AccountType,
+    crate::wallet::{Account, AccountType, RootAccount, ACCOUNT_DIRECTORY},
     anyhow::Result,
     std::{
         collections::HashMap,
@@ -23,10 +22,6 @@ impl AccountMgr {
         passphrase: &str,
         home: &str,
     ) -> Result<Self> {
-        let home_path = Path::new(home);
-        if !home_path.exists() {
-            create_dir_all(home_path)?;
-        }
         let (root_account, mnemonic) =
             RootAccount::generate(lang, wordslen, mnemonic, passphrase, home)?;
 
@@ -50,9 +45,9 @@ impl AccountMgr {
         let seed = root_account.get_seed()?;
         let account = Account::generate(AccountType::Fra, 0, &seed, home)?;
         accounts.insert(account.address.clone(), account);
-        let account = Account::generate(AccountType::Eth, 1, &seed, home)?;
+        let account = Account::generate(AccountType::Eth, 0, &seed, home)?;
         accounts.insert(account.address.clone(), account);
-        let account = Account::generate(AccountType::Evm, 2, &seed, home)?;
+        let account = Account::generate(AccountType::Evm, 0, &seed, home)?;
         accounts.insert(account.address.clone(), account);
         Ok(AccountMgr {
             home: String::from(home),
@@ -61,9 +56,9 @@ impl AccountMgr {
         })
     }
 
-    pub fn load_from_file(home_path: &str) -> Result<Self> {
-        let root_account = RootAccount::load_from_file(home_path)?;
-        let account_path = format!("{}/{}", home_path, ACCOUNT_DIRECTORY);
+    pub fn load_from_file(home: &str) -> Result<Self> {
+        let root_account = RootAccount::load_from_file(home)?;
+        let account_path = format!("{}/{}", home, ACCOUNT_DIRECTORY);
         let account_path = Path::new(account_path.as_str());
         if !account_path.exists() {
             create_dir_all(account_path)?;
@@ -77,7 +72,7 @@ impl AccountMgr {
             }
         }
         Ok(AccountMgr {
-            home: String::from(home_path),
+            home: String::from(home),
             root_account,
             accounts,
         })
